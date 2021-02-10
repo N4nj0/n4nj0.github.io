@@ -1,0 +1,323 @@
+<!doctype html>
+
+<html lang="en-us">
+
+<head>
+  <title>WordPress Plugin Limit Login Attempts Reloaded - Multiple Vulnerabilities - The Tales of N4nj0</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="The HTML5 Herald" />
+<meta name="author" content="Veno Eivazian" /><meta property="og:title" content="WordPress Plugin Limit Login Attempts Reloaded - Multiple Vulnerabilities" />
+<meta property="og:description" content="TL;DR 1 - Rate Limit Bypass: In a non-standard configuration, the client IP header accepts any arbitrary string. When randomizing the header input, the login count does never reach the maximum allowed retries.
+2 - Reflected XSS: When logged as WordPress administrator, the tab URL parameter in /wp-admin/options-general.php?page=limit-login-attempts
+Plugin Information  Plugin name: Limit Login Attempts Reloaded Affected version: &gt;= 2.13.0 Plugin Web Page: https://wordpress.org/plugins/limit-login-attempts-reloaded/  This WordPress plugin is aimed to be a bruteforce attack protection mechanism, and is currently installed in more than 1 million of active installations." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://n4nj0.github.io/advisories/wordpress-plugin-limit-login-attempts-reloaded/" />
+<meta property="article:published_time" content="2020-12-14T18:18:31&#43;01:00"/>
+<meta property="article:modified_time" content="2020-12-14T18:18:31&#43;01:00"/>
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="WordPress Plugin Limit Login Attempts Reloaded - Multiple Vulnerabilities"/>
+<meta name="twitter:description" content="TL;DR 1 - Rate Limit Bypass: In a non-standard configuration, the client IP header accepts any arbitrary string. When randomizing the header input, the login count does never reach the maximum allowed retries.
+2 - Reflected XSS: When logged as WordPress administrator, the tab URL parameter in /wp-admin/options-general.php?page=limit-login-attempts
+Plugin Information  Plugin name: Limit Login Attempts Reloaded Affected version: &gt;= 2.13.0 Plugin Web Page: https://wordpress.org/plugins/limit-login-attempts-reloaded/  This WordPress plugin is aimed to be a bruteforce attack protection mechanism, and is currently installed in more than 1 million of active installations."/>
+
+<meta name="generator" content="Hugo 0.54.0" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://n4nj0.github.io/fontawesome/css/all.min.css" />
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  
+  
+  <link rel="stylesheet" type="text/css" href="/css/styles.css" /></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="/">The Tales of N4nj0</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://github.com/n4nj0" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/venoeivazian" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+        <li>
+            <a class="active" href="/advisories/">
+                <i class="fa-li fa  fa-lg"></i><span>Advisories</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/posts/">
+                <i class="fa-li fa  fa-lg"></i><span>Posts</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/whoami/">
+                <i class="fa-li fa  fa-lg"></i><span>whoami</span>
+            </a>
+        </li>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>WordPress Plugin Limit Login Attempts Reloaded - Multiple Vulnerabilities</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2020-12-14T18:18:31&#43;01:00">Dec 14, 2020</time>
+        </li>
+        
+        
+
+        
+
+        <li>5 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+<div class="featured_image">
+    <a href="https://n4nj0.github.io/advisories/wordpress-plugin-limit-login-attempts-reloaded/" title="WordPress Plugin Limit Login Attempts Reloaded - Multiple Vulnerabilities">
+        <img src="">
+    </a>
+</div>
+
+
+
+    
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<p><strong>1 - Rate Limit Bypass</strong>: In a non-standard configuration, the client IP header accepts any arbitrary string. When randomizing the header input, the login count does never reach the maximum allowed retries.<br />
+<strong>2 - Reflected XSS</strong>: When logged as WordPress administrator, the <strong>tab</strong> URL parameter in <em>/wp-admin/options-general.php?page=limit-login-attempts</em></p>
+
+<h2 id="plugin-information">Plugin Information</h2>
+
+<ul>
+<li><strong>Plugin name:</strong> Limit Login Attempts Reloaded</li>
+<li><strong>Affected version:</strong> &gt;= 2.13.0</li>
+<li><strong>Plugin Web Page:</strong> <a href="https://wordpress.org/plugins/limit-login-attempts-reloaded/">https://wordpress.org/plugins/limit-login-attempts-reloaded/</a></li>
+</ul>
+
+<p>This WordPress plugin is aimed to be a bruteforce attack protection mechanism, and is currently installed in more than <strong>1 million</strong> of active installations.<br />
+However, during a quick auditing of the plugin, I&rsquo;ve found two issues. One is a rate limiting bypass under a non-default configuration, which effectively defeats the plugin purpose. The other one is an unauthenticated reflected XSS.<br />
+We tried to contact the WordPress plugin team and the developer directly, but received no response. As of today, the vulnerabilities are fixed, so I am releasing the full disclosure.<br />
+It is recommended to update to the latest version.</p>
+
+<h2 id="vulnerability-details">Vulnerability Details</h2>
+
+<h3 id="1-improper-restriction-of-excessive-authentication-attempts-rate-limit-bypass-on-login-page-cwe-307"><strong>1 - Improper Restriction of Excessive Authentication Attempts (Rate Limit Bypass on login page) - CWE-307</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> When the plugin is configured to accept an arbitrary header as client source IP address, a malicious user is not limited to perform a brute force attack, because the client IP header accepts any arbitrary string. When randomizing the header input, the login count does never reach the maximum allowed retries.</li>
+<li><strong>Prerequisites:</strong> The plugin needs to be installed and activated on WordPress. On plugin settings page, the <em>Trusted IP Origins</em> has to be configured for an arbitrary header, for example <em>X-Forwarded-For</em>.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-35590">CVE-2020-35590</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-35590"><strong>9.8</strong> (Critical)</a></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>A necessary prerequisite is to configure a custom header on the plugin settings page, in the <em>Trusted IP Origins</em>, including for example <em>X-Forwarded-For</em>.</p>
+
+<p>The configuration page can be as the following picture:</p>
+
+<p><img src="/images/3fee03c44d3491ae26a6c5a1897f43e7.png" alt="Required configuration" /></p>
+
+<p>Please note that in some networking scenarios this configuration is possible. Indeed, there might be present load balancers or reverse proxies in front of the WordPress instance.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/wp-login.php">http://hostname/wp-login.php</a></li>
+<li><strong>HTTP Parameter:</strong> X-Forwarded-For</li>
+</ul>
+
+<p>In normal condition, when there is no custom <em>Trusted IP Origin</em> header configured, or if the header value is always the same value, an attacker is <strong>not</strong> able to perform an attack, because the login limit is enforced by the plugin.</p>
+
+<p>Indeed, the classic password only brute force is blocked, as depicted by the following pictures:</p>
+
+<p><img src="/images/10cee3515c3a26d67e8b1e6dc8e089ab.png" alt="Required configuration" /></p>
+
+<p>The attacker can use a word list in the password value:</p>
+
+<p><img src="/images/9409c50002dfff8cf4ae26db2572af40.png" alt="Required configuration" /></p>
+
+<p>After few attempts, the plugin in the default configuration successfully stops the attacker:</p>
+
+<p><img src="/images/62528178fd67b903a87751ef2db26ca0.png" alt="Required configuration" /></p>
+
+<p>However, the <strong>X-Forwarded-For</strong> value is not validated to be an IP address or an array of IP addresses (some load balancers could use a comma-separated list as value).</p>
+
+<p>Indeed, if a malicious user adds the <strong>X-Forwarded-For</strong> header on the login request, can test for the authentication rate limit bypass.</p>
+
+<p>Below are the evidences with the vulnerability details and the payload used.</p>
+
+<p><img src="/images/83bd20eddaeb475c56244b2fe63cb365.png" alt="Required configuration" /></p>
+
+<p>The first set of values is the word list used for testing the password value:</p>
+
+<p><img src="/images/a2b2bb006b2755547f9cea621ef876f9.png" alt="Required configuration" /></p>
+
+<p>The second list can be every string, even simply incrementing the numbers from 1 to 10:</p>
+
+<p><img src="/images/a74e12d142d248c2dbeb26c3da5b861c.png" alt="Required configuration" /></p>
+
+<p>Indeed, the attacker is able to bypass the limit and potentially found the login credentials:</p>
+
+<p><img src="/images/ae90b88a08842a87e672f46618815258.png" alt="Required configuration" /></p>
+
+<p>Please note that custom headers are allowed using the following format, as an example:</p>
+
+<ul>
+<li><strong>Plugin settings value name:</strong> HTTP_X_PIPPO</li>
+<li><strong>HTTP request header name:</strong> X-Pippo</li>
+</ul>
+
+<p>Payload used to exploit the vulnerability, changing the value of <em>X-Forwarded-For</em> on every attempt:</p>
+
+<pre><code>POST /wp-login.php HTTP/1.1
+Host: wordpress
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Content-Type: application/x-www-form-urlencoded
+X-Forwarded-For: 1
+Connection: close
+Cookie: wordpress_test_cookie=WP+Cookie+check
+Upgrade-Insecure-Requests: 1
+
+log=admin&amp;pwd=password&amp;wp-submit=Log+In&amp;redirect_to=http%3A%2F%2Fwordpress%2Fwp-admin%2F&amp;testcookie=1
+</code></pre>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to perform an arbitrary number of authentication attempts using different passwords, and eventually gain access to the targeted account.</p>
+
+<p><strong>Brute-force tool</strong></p>
+
+<p>I have released a brute-force tool on my <a href="https://github.com/N4nj0/CVE-2020-35590">GitHub repo</a>.</p>
+
+<h3 id="2-improper-neutralization-of-input-during-web-page-generation-reflected-cross-site-scripting-cwe-79"><strong>2 - Improper Neutralization of Input During Web Page Generation (Reflected Cross-Site Scripting) - CWE-79</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An authenticated remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of user-supplied data and achieve a Reflected Cross-Site Scripting attack against the platform administrators.</li>
+<li><strong>Prerequisites:</strong> The plugin needs to be installed and activated on WordPress. No special configuration is required to reproduce the issue.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-35589">CVE-2020-35589</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-35589"><strong>5.4</strong> (Medium)</a></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>A malicious user can cause an administrator user to supply dangerous content to the vulnerable page, which is then reflected back to the user and executed by the web browser. The most common mechanism for delivering malicious content is to include it as a parameter in a URL that is posted publicly or e-mailed directly to victims.</p>
+
+<p><strong>Affected Endpoints:</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://wordpress/wp-admin/options-general.php?page=limit-login-attempts">http://wordpress/wp-admin/options-general.php?page=limit-login-attempts</a></li>
+<li><strong>HTTP Parameter:</strong> tab</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>While the administrator user is logged in to WordPress, visit the page in the payload section.</p>
+
+<p>The data is read directly from the HTTP request and reflected back in the HTTP response:</p>
+
+<p><img src="/images/302048013468d6eba771107208a3dad7.png" alt="Required configuration" /></p>
+
+<p>Execution of the JavaScript payload in the browser context:</p>
+
+<p><img src="/images/33140a21ad94526170270a3d087c2a9d.png" alt="Required configuration" /></p>
+
+<p>Payload used to exploit the vulnerability:</p>
+
+<pre><code>http://wordpress/wp-admin/options-general.php?page=limit-login-attempts&amp;tab=d7raf&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+</code></pre>
+
+<p>Please note that the <strong>options-general.php</strong> page is only available to WordPress administrators. Lower privileged users are not affected because the page is forbidden for them (error 403).</p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to target administrator users who are able to access the plugin configuration page within the browser with several type of direct or indirect impacts such as stealing cookies (if the HttpOnly flag is missing from the session cookies), modifying a web page, capturing clipboard contents, keylogging, port scanning, dynamic downloads and other attacks. This type of reflected XSS does require user interaction.</p>
+
+<h2 id="timeline">Timeline</h2>
+
+<ul>
+<li><strong>14/06/2020</strong>: First disclosure to WP Plugin Team plugins@wordpress.org<br /></li>
+<li><strong>23/06/2020</strong>: Ping request to WP Plugin Team for reading the mail. They reply asking for waiting 60 days for publishing the issues.<br /></li>
+<li><strong>24/07/2020</strong>: Ping request to WP Plugin Team for news. Destination Host Unreachable (Spoiler: No response 😳)<br /></li>
+<li><strong>15/09/2020</strong>: Contacted directly the developer via mail address. No response till day.<br /></li>
+<li><strong>14/12/2020</strong>: Testing if those vulnerabilities apply to latest version to date, 2.17.4. The developer has fixed both, but not notified users. Thus, releasing.<br /></li>
+<li><strong>21/12/2020</strong>: MITRE released
+<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-35589">CVE-2020-35589</a> and <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-35590">CVE-2020-35590</a>.<br /></li>
+<li><strong>22/12/2020</strong>: NVD scored
+<a href="https://nvd.nist.gov/vuln/detail/CVE-2020-35589">CVE-2020-35589</a> as <strong>5.4</strong> (Medium) and <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-35590">CVE-2020-35590</a> as <strong>9.8</strong> (Critical).<br /></li>
+<li><strong>24/12/2020</strong>: Released exploit for CVE-2020-35590 on my <a href="https://github.com/N4nj0/CVE-2020-35590">GitHub repo</a>. Find your perfect Christmas gift 🎅<br /></li>
+</ul>
+
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        
+        <li>
+            <a href="https://n4nj0.github.io/advisories/ibm-infosphere-java-deserialization/">IBM InfoSphere Information Server - Java Deserialization <i class="fa fa-chevron-circle-right"></i> </a>
+        </li>
+        
+    </ul>
+</section>
+  
+    
+    
+  
+
+
+
+
+
+<footer>
+  <div>
+    <p>
+      <h6>
+      &copy; 2020 Veno Eivazian.
+      <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons Attribution">Some rights reserved</a>;
+      please attribute properly and link back.
+      </h6>
+    </p>
+  </div>
+</footer>
+

