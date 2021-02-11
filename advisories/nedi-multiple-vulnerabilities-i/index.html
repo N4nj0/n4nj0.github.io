@@ -9,8 +9,8 @@
 <meta name="description" content="The HTML5 Herald" />
 <meta name="author" content="Veno Eivazian" /><meta property="og:title" content="NeDi 1.9C - Multiple Vulnerabilities" />
 <meta property="og:description" content="TL;DR 1 - SQL Injection: An authenticated user is able to perform a SQL Injection in the Monitoring History function on the endpoint /Monitoring-History.php via the det HTTP GET parameter.
-2 - Code Injection: An authenticated user is able to execute operating system commands in the Nodes Traffic function on the endpoint /Nodes-Traffic.php via the md or ag HTTP GET parameter.
-3 - Command Injection: An authenticated user is able to inject PHP code in the System Files function on the endpoint /System-Files." />
+2 - Code Injection: An authenticated user is able to inject PHP code in the System Files function on the endpoint /System-Files.php via the txt HTTP POST parameter.
+3 - Command Injection: An authenticated user is able to execute operating system commands in the Nodes Traffic function on the endpoint /Nodes-Traffic." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://n4nj0.github.io/advisories/nedi-multiple-vulnerabilities-i/" />
 <meta property="article:published_time" content="2021-02-10T09:30:00&#43;01:00"/>
@@ -19,8 +19,8 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="NeDi 1.9C - Multiple Vulnerabilities"/>
 <meta name="twitter:description" content="TL;DR 1 - SQL Injection: An authenticated user is able to perform a SQL Injection in the Monitoring History function on the endpoint /Monitoring-History.php via the det HTTP GET parameter.
-2 - Code Injection: An authenticated user is able to execute operating system commands in the Nodes Traffic function on the endpoint /Nodes-Traffic.php via the md or ag HTTP GET parameter.
-3 - Command Injection: An authenticated user is able to inject PHP code in the System Files function on the endpoint /System-Files."/>
+2 - Code Injection: An authenticated user is able to inject PHP code in the System Files function on the endpoint /System-Files.php via the txt HTTP POST parameter.
+3 - Command Injection: An authenticated user is able to execute operating system commands in the Nodes Traffic function on the endpoint /Nodes-Traffic."/>
 
 <meta name="generator" content="Hugo 0.54.0" />
     
@@ -121,8 +121,8 @@
 <h2 id="tl-dr">TL;DR</h2>
 
 <p><strong>1 - SQL Injection</strong>: An authenticated user is able to perform a SQL Injection in the Monitoring History function on the endpoint /Monitoring-History.php via the det HTTP GET parameter.<br />
-<strong>2 - Code Injection</strong>: An authenticated user is able to execute operating system commands in the Nodes Traffic function on the endpoint /Nodes-Traffic.php via the md or ag HTTP GET parameter.<br />
-<strong>3 - Command Injection</strong>: An authenticated user is able to inject PHP code in the System Files function on the endpoint /System-Files.php via the txt HTTP POST parameter.</p>
+<strong>2 - Code Injection</strong>: An authenticated user is able to inject PHP code in the System Files function on the endpoint /System-Files.php via the txt HTTP POST parameter.<br />
+<strong>3 - Command Injection</strong>: An authenticated user is able to execute operating system commands in the Nodes Traffic function on the endpoint /Nodes-Traffic.php via the md or ag HTTP GET parameter.</p>
 
 <h2 id="product-information">Product Information</h2>
 
