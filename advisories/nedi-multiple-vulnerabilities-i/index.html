@@ -156,7 +156,7 @@ The first is a SQL Injection, the second is a Code Injection, and the third is a
 <ul>
 <li><strong>Summary:</strong> An authenticated user can perform a SQL injection attack to access all the data in the database and obtain access to the web application.</li>
 <li><strong>Prerequisites:</strong> Valid credentials for NeDi web interface. Also, some events have to be present on the Monitoring History graphs.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-26751">CVE-2021-26751</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26751"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-26751">CVE-2021-26751</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26751"><strong>8.8</strong> (High)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -238,7 +238,7 @@ It is important to note that a valid NeDi administator account is also able to e
 <ul>
 <li><strong>Summary:</strong> An authenticated user is able to inject PHP code to obtain access to the operating system where NeDi is installed and to all application data.</li>
 <li><strong>Prerequisites:</strong> Valid credentials for NeDi web interface.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-26753">CVE-2021-26753</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26753"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-26753">CVE-2021-26753</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26753"><strong>9.9</strong> (Critical)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -322,7 +322,7 @@ if( !isset($_SESSION['group']) ) exit;
 <ul>
 <li><strong>Summary:</strong> An authenticated user is able to execute operating system commands to obtain access to the operating system where NeDi is installed and to all application data.</li>
 <li><strong>Prerequisites:</strong> Valid credentials for NeDi web interface.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-26752">CVE-2021-26752</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26752"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-26752">CVE-2021-26752</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26752"><strong>8.8</strong> (High)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -400,6 +400,8 @@ Indeed, the final value for the variable <code>$nfcmd</code> will be:</p>
 <li><strong>02/02/2020</strong>: Acknowledge e-mail from the product owner!</li>
 <li><strong>04/02/2020</strong>: Released the patch <a href="https://www.nedi.ch/pub/nedi-1.9C1.ptc">1.9Cp1</a>, which has the fix for the vulnerabilities. Very impressive speed, the developer is very professional.</li>
 <li><strong>09/02/2020</strong>: Updated forum with advisory and credits: <a href="https://forum.nedi.ch/index.php?topic=2322">https://forum.nedi.ch/index.php?topic=2322</a></li>
+<li><strong>12/02/2020</strong>: Published CVE on MITRE.</li>
+<li><strong>13/02/2020</strong>: NVD scored <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26751">CVE-2021-26751</a> and <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26752">CVE-2021-26752</a> as <strong>8.8</strong> (High), <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-26753">CVE-2021-26753</a> as <strong>9.9</strong> (Critical).</li>
 </ul>
 
 
