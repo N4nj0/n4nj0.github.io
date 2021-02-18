@@ -13,8 +13,8 @@
 Product Information  Product Name: Pi-hole Vulnerable Version: 5.0, 5.1, 5.1.1 Organization Name: Pi-hole, LLC Product Web Page: https://pi-hole." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://n4nj0.github.io/advisories/pi-hole-multiple-vulnerabilities-i/" />
-<meta property="article:published_time" content="2021-02-18T11:10:00&#43;01:00"/>
-<meta property="article:modified_time" content="2021-02-18T11:10:00&#43;01:00"/>
+<meta property="article:published_time" content="2021-02-18T11:55:00&#43;01:00"/>
+<meta property="article:modified_time" content="2021-02-18T11:55:00&#43;01:00"/>
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Pi-hole - Multiple Vulnerabilities"/>
@@ -94,7 +94,7 @@ Product Information  Product Name: Pi-hole Vulnerable Version: 5.0, 5.1, 5.1.1 O
       <aside>
     <ul>
         <li>
-            <time class="post-date" datetime="2021-02-18T11:10:00&#43;01:00">Feb 18, 2021</time>
+            <time class="post-date" datetime="2021-02-18T11:55:00&#43;01:00">Feb 18, 2021</time>
         </li>
         
         
@@ -147,6 +147,7 @@ It is recommended to apply the latest update Pi-hole FTL v5.7 and Web v5.4: <a h
 <ul>
 <li><strong>Summary:</strong> A remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of user-supplied data and achieve a Reflected Cross-Site Scripting attack against other users and steal the session cookie.</li>
 <li><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-35592">CVE-2020-35592</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-35592"><strong>N/A</strong> (N/A)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -197,6 +198,7 @@ Origin: aaa&lt;script&gt;alert(document.cookie)&lt;/script&gt;
 <ul>
 <li><strong>Summary:</strong> Session fixation vulnerability allows remote attackers to hijack web sessions via the PHPSESSID parameter.</li>
 <li><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-35591">CVE-2020-35591</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-35591"><strong>N/A</strong> (N/A)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
