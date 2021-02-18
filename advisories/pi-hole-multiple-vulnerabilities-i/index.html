@@ -145,8 +145,6 @@ It is recommended to apply the latest update Pi-hole FTL v5.7 and Web v5.4: <a h
 <h3 id="1-reflected-cross-site-scripting-improper-neutralization-of-input-during-web-page-generation-cross-site-scripting-cwe-79"><strong>1 - Reflected Cross-site Scripting - Improper Neutralization of Input During Web Page Generation (Cross-site Scripting) - CWE-79</strong></h3>
 
 <ul>
-<li><strong>Product Line:</strong> Pi-hole</li>
-<li><strong>Vulnerable Version:</strong> 5.0, 5.1, 5.1.1</li>
 <li><strong>Summary:</strong> A remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of user-supplied data and achieve a Reflected Cross-Site Scripting attack against other users and steal the session cookie.</li>
 <li><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</li>
 </ul>
@@ -197,12 +195,8 @@ Origin: aaa&lt;script&gt;alert(document.cookie)&lt;/script&gt;
 <h3 id="2-session-fixation-cwe-384"><strong>2 - Session Fixation - CWE-384</strong></h3>
 
 <ul>
-<li><strong>Product Line:</strong> Pi-hole</li>
-<li><strong>Vulnerable Version:</strong> 5.0, 5.1, 5.1.1</li>
-
-<li><p><strong>Summary:</strong> Session fixation vulnerability allows remote attackers to hijack web sessions via the PHPSESSID parameter.</p></li>
-
-<li><p><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</p></li>
+<li><strong>Summary:</strong> Session fixation vulnerability allows remote attackers to hijack web sessions via the PHPSESSID parameter.</li>
+<li><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
