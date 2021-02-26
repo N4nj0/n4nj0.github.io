@@ -1,0 +1,242 @@
+<!doctype html>
+
+<html lang="en-us">
+
+<head>
+  <title>WordPress Plugin WP File Manager - Reflected XSS - The Tales of N4nj0</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="The HTML5 Herald" />
+<meta name="author" content="Veno Eivazian" /><meta property="og:title" content="WordPress Plugin WP File Manager - Reflected XSS" />
+<meta property="og:description" content="TL;DR I have found an authenticated Reflected XSS on WordPress Plugin WP File Manager version &lt;= 7.0 on the User-Agent HTTP parameter.
+Plugin Information  Organization Name: WP File Manager 7.0 Web Page: https://wordpress.org/plugins/ Email: plugins@wordpress.org Vulnerability Disclosure Info or Technical Support Web Page: https://filemanagerpro.io/contact/?utm_source=Wordpress.org&amp;utm_medium=Website&amp;utm_campaign=File%20Manager%20Pro Plugin name: WP File Manager Plugin version: &lt;= 7.0 Plugin Web Page: https://wordpress.org/plugins/wp-file-manager/  WP File Manager is a popular WordPress plugin which makes very easy to manage files on a WordPress instance." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://n4nj0.github.io/advisories/wordpress-plugin-wp-file-manager-i/" />
+<meta property="article:published_time" content="2021-02-26T15:00:00&#43;01:00"/>
+<meta property="article:modified_time" content="2021-02-26T15:00:00&#43;01:00"/>
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="WordPress Plugin WP File Manager - Reflected XSS"/>
+<meta name="twitter:description" content="TL;DR I have found an authenticated Reflected XSS on WordPress Plugin WP File Manager version &lt;= 7.0 on the User-Agent HTTP parameter.
+Plugin Information  Organization Name: WP File Manager 7.0 Web Page: https://wordpress.org/plugins/ Email: plugins@wordpress.org Vulnerability Disclosure Info or Technical Support Web Page: https://filemanagerpro.io/contact/?utm_source=Wordpress.org&amp;utm_medium=Website&amp;utm_campaign=File%20Manager%20Pro Plugin name: WP File Manager Plugin version: &lt;= 7.0 Plugin Web Page: https://wordpress.org/plugins/wp-file-manager/  WP File Manager is a popular WordPress plugin which makes very easy to manage files on a WordPress instance."/>
+
+<meta name="generator" content="Hugo 0.54.0" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://n4nj0.github.io/fontawesome/css/all.min.css" />
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  
+  
+  <link rel="stylesheet" type="text/css" href="/css/styles.css" /></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="/">The Tales of N4nj0</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://github.com/n4nj0" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/venoeivazian" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+        <li>
+            <a class="active" href="/advisories/">
+                <i class="fa-li fa  fa-lg"></i><span>Advisories</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/posts/">
+                <i class="fa-li fa  fa-lg"></i><span>Posts</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/whoami/">
+                <i class="fa-li fa  fa-lg"></i><span>whoami</span>
+            </a>
+        </li>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>WordPress Plugin WP File Manager - Reflected XSS</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2021-02-26T15:00:00&#43;01:00">Feb 26, 2021</time>
+        </li>
+        
+        
+
+        
+
+        <li>3 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+<div class="featured_image">
+    <a href="https://n4nj0.github.io/advisories/wordpress-plugin-wp-file-manager-i/" title="WordPress Plugin WP File Manager - Reflected XSS">
+        <img src="">
+    </a>
+</div>
+
+
+
+    
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<p>I have found an authenticated Reflected XSS on WordPress Plugin WP File Manager version &lt;= 7.0 on the <strong>User-Agent</strong> HTTP parameter.</p>
+
+<h2 id="plugin-information">Plugin Information</h2>
+
+<ul>
+<li><strong>Organization Name:</strong> WP File Manager 7.0</li>
+<li><strong>Web Page:</strong> <a href="https://wordpress.org/plugins/">https://wordpress.org/plugins/</a></li>
+<li><strong>Email:</strong> <a href="plugins@wordpress.org">plugins@wordpress.org</a></li>
+<li><strong>Vulnerability Disclosure Info or Technical Support Web Page:</strong> <a href="https://filemanagerpro.io/contact/?utm_source=Wordpress.org&amp;utm_medium=Website&amp;utm_campaign=File%20Manager%20Pro">https://filemanagerpro.io/contact/?utm_source=Wordpress.org&amp;utm_medium=Website&amp;utm_campaign=File%20Manager%20Pro</a></li>
+<li><strong>Plugin name:</strong> WP File Manager</li>
+<li><strong>Plugin version:</strong> &lt;= 7.0</li>
+<li><strong>Plugin Web Page:</strong> <a href="https://wordpress.org/plugins/wp-file-manager/">https://wordpress.org/plugins/wp-file-manager/</a></li>
+</ul>
+
+<p>WP File Manager is a popular WordPress plugin which makes very easy to manage files on a WordPress instance. It is currently used by 600,000+ active installations.</p>
+
+<p>During a quick security auditing of the product, I have found that in the default configuration a Reflected XSS can occur on the endpoint /wp-admin/admin.php?page=wp_file_manager_properties when a payload is submitted on the <strong>User-Agent</strong> parameter. The payload is then reflected back on the web application response.</p>
+
+<p>The fix was developed with the release 7.1, two days my vulnerability disclosure, which is a very good and serious way to handle security issues.</p>
+
+<h2 id="vulnerability-details">Vulnerability Details</h2>
+
+<h3 id="improper-neutralization-of-input-during-web-page-generation-reflected-cross-site-scripting-cwe-79"><strong>Improper Neutralization of Input During Web Page Generation (Reflected Cross-Site Scripting) - CWE-79</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An authenticated remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of user-supplied data and achieve a Reflected Cross-Site Scripting attack against the platform administrators.</li>
+<li><strong>Prerequisites:</strong> The plugin needs to be installed and activated on WordPress. No special configuration is required to reproduce the issue.</li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>A malicious user can cause an administrator user to supply dangerous content to the vulnerable page, which is then reflected back to the user and executed by the web browser. The most common mechanism for delivering malicious content is to include it as a parameter in a URL that is posted publicly or e-mailed directly to victims.</p>
+
+<p><strong>Affected Endpoints:</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://wordpress/wp-admin/admin.php?page=wp_file_manager_properties">http://wordpress/wp-admin/admin.php?page=wp_file_manager_properties</a></li>
+<li><strong>HTTP Parameter:</strong> User-Agent</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>While the administrator user is logged in to WordPress, visit the <strong>System Properties</strong> page.</p>
+
+<p><img src="/images/17cca00d0abf4df2b0cd300214001cc0.png" alt="Affected page" /></p>
+
+<p>With the HTTP Proxy like Burp Suite intercept the request.<br />
+Then, repeat the request and append the following basic payload on <code>User-Agent</code> header:</p>
+
+<pre><code>&lt;script&gt;alert(1)&lt;/script&gt;
+</code></pre>
+
+<p>The payload is reflected on the response.</p>
+
+<p><img src="/images/9bbc2a226f68d14f4cd6dd6f8db08ab8.png" alt="Burp Repeater" /></p>
+
+<p>To weaponize the attack a malicious user can build a page which sends an XMLHTTPRequest on behalf of the user.<br />
+To simulate this behavior, <em>right-click</em> the HTTP request -&gt; <strong>Request in browser</strong> -&gt; <strong>In original session</strong></p>
+
+<p>Copy and paste an URL similar to the following:</p>
+
+<pre><code>http://burpsuite/repeat/2/0jmlsl04hq2916k69iae7rtharty29hu
+</code></pre>
+
+<p><img src="/images/1a471ac81867d77e0432ede6180d5335.png" alt="Burp - Request in original session" /></p>
+
+<p>To execute the JavaScript payload in the browser context, paste the URL in the browser:</p>
+
+<p><img src="/images/79e472b4cad6ab1dc9f532f250b6719e.png" alt="Payload execution" /></p>
+
+<p>Please note that the <strong>/wp-admin/admin.php?page=wp_file_manager_properties</strong> page is only available to WordPress administrators. Lower privileged users are not affected because the page is forbidden for them (error 403).</p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to target administrator users who are able to access the plugin configuration page within the browser with several type of direct or indirect impacts such as stealing cookies (if the HttpOnly flag is missing from the session cookies), modifying a web page, capturing clipboard contents, keylogging, port scanning, dynamic downloads and other attacks. This type of reflected XSS does require user interaction.</p>
+
+<h2 id="timeline">Timeline</h2>
+
+<ul>
+<li><strong>16/02/2021</strong>: First disclosure via private ticket on the Technical Support Web Page.</li>
+<li><strong>17/02/2021</strong>: Human acknowledge e-mail from Technical Support!</li>
+<li><strong>18/02/2021</strong>: Released the version 7.1, which has the fix for the vulnerability. Very impressive&hellip;</li>
+<li><strong>18/02/2021</strong>: Added version on changelog: <a href="https://wordpress.org/plugins/wp-file-manager/#developers">https://wordpress.org/plugins/wp-file-manager/#developers</a></li>
+<li><strong>26/02/2021</strong>: Update is given that the vulnerability is fixed on version 7.1.</li>
+<li><strong>26/02/2021</strong>: Reserved CVE on MITRE website.</li>
+</ul>
+
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        <li>
+            <a href="https://n4nj0.github.io/advisories/pi-hole-multiple-vulnerabilities-i/"><i class="fa fa-chevron-circle-left"></i> Pi-hole - Multiple Vulnerabilities</a>
+        </li>
+        
+        
+    </ul>
+</section>
+  
+    
+    
+  
+
+
+
+
+
+<footer>
+  <div>
+    <p>
+      <h6>
+      &copy; 2020 Veno Eivazian.
+      <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons Attribution">Some rights reserved</a>;
+      please attribute properly and link back.
+      </h6>
+    </p>
+  </div>
+</footer>
+
