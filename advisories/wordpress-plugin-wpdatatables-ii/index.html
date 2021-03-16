@@ -142,7 +142,7 @@
 
 <p>During another security auditing of the product, we have found four security issues. The first two are broken access controls on accessing and deleting data on the same table. Also, the other two are Blind SQL Injections on 2 different parameters.</p>
 
-<p>The fix was developed with the release 3.4.2, 16 days after our vulnerability disclosure. This time they didn&rsquo;t mention us, maybe we have created some troubles for them. For all folks of wpDataTables Team, no problem for us, the important thing is to collaborate and make the products more secure as possible. See you soon 😘</p>
+<p>The fix was developed with the release 3.4.2, 16 days after our vulnerability disclosure. This time they didn&rsquo;t mention us, maybe we have created some troubles for them. For all folks of wpDataTables Team: No problem for us, the important thing is to collaborate and make the products more secure as possible. See you soon 😘</p>
 
 <h2 id="vulnerability-details">Vulnerability Details</h2>
 
@@ -155,9 +155,12 @@
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
 
-<p>First, it is necessary to create a simple table with three columns and two or more rows. Then, the table can be published on a page with the following settings:
-* Allow front-end editing
-* Limit editing to own data only</p>
+<p>First, it is necessary to create a simple table with three columns and two or more rows. Then, the table can be published on a page with the following settings:</p>
+
+<ul>
+<li>Allow front-end editing</li>
+<li>Limit editing to own data only</li>
+</ul>
 
 <p>An authenticated user that visits the page where the table is published can tamper the parameters to access the data of another user that are present in the same table through <strong>formdata[wdt_ID]</strong> parameter.</p>
 
@@ -287,9 +290,12 @@ action=wdt_save_table_frontend&amp;wdtNonce=55f87706c7&amp;formdata%5Btable_id%5
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
 
-<p>First, it is necessary to create a simple table with three columns and two or more rows. Then, the table can be published on a page with the following settings:
-* Allow front-end editing
-* Limit editing to own data only</p>
+<p>First, it is necessary to create a simple table with three columns and two or more rows. Then, the table can be published on a page with the following settings:</p>
+
+<ul>
+<li>Allow front-end editing</li>
+<li>Limit editing to own data only</li>
+</ul>
 
 <p>An authenticated user that visits the page where the table is published can tamper the parameters to delete the data of another user that are present in the same table through <strong>id_key</strong> and <strong>id_val</strong> parameters.</p>
 
