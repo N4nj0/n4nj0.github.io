@@ -177,7 +177,7 @@ An authenticated user that visits the Monitoring History page can perform a SQL 
 
 <p>Login to NeDi web administrative interface with the <strong>admin</strong> account.<br />
 To execute a network discovery to generate events, go to <strong>System</strong> -&gt; <strong>NeDi</strong>, or directly to the URL <a href="https://hostname/System-NeDi.php">https://hostname/System-NeDi.php</a>.<br />
-Select <strong>Discover</strong> -&gt; <strong>Ping</strong> -&gt; <strong>Source</strong> -&gt; <strong><IP_ADDRESS></strong> -&gt; <strong>Execute</strong> and wait 1 minute.</p>
+Select <strong>Discover</strong> -&gt; <strong>Ping</strong> -&gt; <strong>Source</strong> -&gt; <strong>&lt;IP_ADDRESS&gt;</strong> -&gt; <strong>Execute</strong> and wait 1 minute.</p>
 
 <p><img src="/images/7203c990163ed0b6b0dc3d24135eb4f1.png" alt="Network discovery" /></p>
 
@@ -348,9 +348,12 @@ The one at line <strong>517</strong> can be triggered if the variable <code>$am<
 
 <p>On the beginning of the code, it is clear that is possible to control the <code>$am</code> variable, on the purpose to enter the conditional branch of line 514.<br />
 The <code>$am</code> variable cannot be controlled directly, but the <code>$md</code> one can be.<br />
-According to the code, it is noted that:
-* On line <strong>23</strong>, the <code>$md</code> is taken as URL parameter and is not being sanitized.
-* On line <strong>26</strong>, if <code>$md = S</code>, the target variable will be <code>$am = 1</code>.</p>
+According to the code, it is noted that:</p>
+
+<ul>
+<li>On line <strong>23</strong>, the <code>$md</code> is taken as URL parameter and is not being sanitized.</li>
+<li>On line <strong>26</strong>, if <code>$md = S</code>, the target variable will be <code>$am = 1</code>.</li>
+</ul>
 
 <p><img src="/images/4fd728859a97bb6f5f78717f69d46c62.png" alt="Command Injection - $md and $am variable code" /></p>
 
