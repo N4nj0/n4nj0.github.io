@@ -159,7 +159,7 @@
 <ul>
 <li><strong>Summary:</strong> An authenticated user can tamper HTTP parameters to access to the data on the table of another user by taking over the user permissions on the table.</li>
 <li><strong>Prerequisites:</strong> A simple table with the settings of <em>Enable of front-end editing</em> and <em>Limiting editing to own data only</em> needs to be created and published in a page on WordPress.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-24197">CVE-2021-24197</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24197"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-24197">CVE-2021-24197</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24197"><strong>8.1</strong> (High)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -295,7 +295,7 @@ action=wdt_save_table_frontend&amp;wdtNonce=55f87706c7&amp;formdata%5Btable_id%5
 <ul>
 <li><strong>Summary:</strong> An authenticated user can tamper HTTP parameters to delete the data in the table of another user.</li>
 <li><strong>Prerequisites:</strong> A simple table with the settings of <em>Enable of front-end editing</em> and <em>Limiting editing to own data only</em> needs to be created and published in a page on WordPress.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-24198">CVE-2021-24198</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24198"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-24198">CVE-2021-24198</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24198"><strong>8.1</strong> (High)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -409,7 +409,7 @@ action=wdt_delete_table_row&amp;id_key=userid&amp;id_val=1&amp;table_id=21&amp;w
 <ul>
 <li><strong>Summary:</strong> An authenticated user can perform a SQL injection attack to access all the data in the database and obtain access to the WordPress application.</li>
 <li><strong>Prerequisites:</strong> WordPress account. Also, a simple table with default settings needs to be created via the web interface.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-24199">CVE-2021-24199</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24199"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-24199">CVE-2021-24199</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24199"><strong>6.5</strong> (Medium)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -517,7 +517,7 @@ It is important to note that a valid WordPress administrator account is also abl
 <ul>
 <li><strong>Summary:</strong> An authenticated user can perform a SQL injection attack to access all the data in the database and obtain access to the WordPress application.</li>
 <li><strong>Prerequisites:</strong> WordPress account. Also, a simple table with default settings needs to be created via the web interface.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-24200">CVE-2021-24200</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24200"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-24200">CVE-2021-24200</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24200"><strong>6.5</strong> (Medium)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -606,6 +606,7 @@ It is important to note that a valid WordPress administrator account is also abl
 <li><strong>05/02/2021</strong>: Ticket closed, and stated that the fix will be included in the next update. (Not so) kind regards&hellip;</li>
 <li><strong>10/03/2021</strong>: Released the version 3.4.2, which has the fix for the vulnerabilities. Check the <a href="https://wpdatatables.com/help/whats-new-changelog/">Changelog</a>.</li>
 <li><strong>17/03/2021</strong>: Reserved CVEs by WPScan, as from 2021 it has been named a CNA for WordPress core, plugin and theme CVEs. Check <a href="https://wptavern.com/wpscan-can-now-assign-cve-numbers-for-wordpress-core-plugin-and-theme-vulnerabilities">here</a> for further information.</li>
+<li><strong>13/04/2021</strong>: NVD scored <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24197">CVE-2021-24197</a> and <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24198">CVE-2021-24198</a> as <strong>8.1</strong> (High), <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24199">CVE-2021-24199</a> and <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-24200">CVE-2021-24200</a> as <strong>6.5</strong> (Medium).</li>
 </ul>
 
 
