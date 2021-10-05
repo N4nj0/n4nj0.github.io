@@ -107,7 +107,7 @@
 
         
 
-        <li>11 minutes read</li>
+        <li>12 minutes read</li>
     </ul>
 </aside>
 
@@ -159,7 +159,7 @@ The first three are privilege escalation vulnerabilities, the fourth consists in
 <ul>
 <li><strong>Summary:</strong> An authenticated operating system ehealth user is able to inject an arbitrary library to an application binary executable. Because that binary has SUID/GUID privileges, the user is able to obtain root privileges on the operating system. The issue is tested on x86 and SPARC architectures of the product.</li>
 <li><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28249">CVE-2021-28249</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28249"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28249">CVE-2021-28249</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28249"><strong>8.8</strong> (High)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -254,7 +254,7 @@ void inject(){
 <ul>
 <li><strong>Summary:</strong> A regular operating system user is able to inject an arbitrary library to an application binary executable. Because that binary has SUID/GUID privileges, the user is able to obtain privileges on the operating system as the ehealth user. The issue is tested on the SPARC architecture of the product.</li>
 <li><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28246">CVE-2021-28246</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28246"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28246">CVE-2021-28246</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28246"><strong>7.8</strong> (High)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -333,7 +333,7 @@ void inject(){
 <ul>
 <li><strong>Summary:</strong> An authenticated operating system user is able to run code and impersonate the ehealth application user on the operating system, by abusing excessive permissions in a SUID/GUID executable file.</li>
 <li><strong>Prerequisites:</strong> The user must be able to write to a subfolder in <code>/opt</code> path.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28250">CVE-2021-28250</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28250"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28250">CVE-2021-28250</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28250"><strong>7.8</strong> (High)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -363,7 +363,7 @@ However, in the specific case the permissions obtained are of ehealth, because t
 <ul>
 <li><strong>Summary:</strong> An authenticated remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of user-supplied data and achieve a Reflected Cross-Site Scripting attack against other users.</li>
 <li><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28247">CVE-2021-28247</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28247"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28247">CVE-2021-28247</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28247"><strong>5.4</strong> (Medium)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -412,7 +412,7 @@ However, in the specific case the permissions obtained are of ehealth, because t
 <ul>
 <li><strong>Summary:</strong> A malicious user is not limited or blocked to perform a brute force attack in the main application login page.</li>
 <li><strong>Prerequisites:</strong> No special configuration is required to reproduce the issue.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28248">CVE-2021-28248</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28248"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28248">CVE-2021-28248</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28248"><strong>7.5</strong> (High)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -462,6 +462,7 @@ Authorization: Basic &lt;REDACTED&gt;
 <li><strong>02/02/2021</strong>: I am releasing the full disclosure to assist the MITRE analysis.<br /></li>
 <li><strong>02/02/2021</strong>: Requested the CVE to MITRE using the CNA of Last Resort (CNA-LR). It is the one to use when the vendor does not recognize the issue because of the end-of-life reason.<br /></li>
 <li><strong>12/03/2021</strong>: MITRE published the 5 CVEs.</li>
+<li><strong>29/03/2021</strong>: NVD scored <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28249">CVE-2021-28249</a> as <strong>8.8</strong> (High), <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28246">CVE-2021-28246</a> as <strong>7.8</strong> (High), <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28250">CVE-2021-28250</a> as <strong>7.8</strong> (High), <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28247">CVE-2021-28247</a> as <strong>5.4</strong> (Medium) and <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-28248">CVE-2021-28248</a> as <strong>7.5</strong> (High).</li>
 </ul>
 
 
