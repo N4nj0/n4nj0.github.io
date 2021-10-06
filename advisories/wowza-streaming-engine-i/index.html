@@ -9,7 +9,8 @@
 <meta name="description" content="The HTML5 Herald" />
 <meta name="author" content="Veno Eivazian" /><meta property="og:title" content="Wowza Streaming Engine - Multiple Vulnerabilities" />
 <meta property="og:description" content="TL;DR I have found two security issues on Wowza Streaming Engine &lt;= 4.8.11&#43;5:
-1 - Cross-Site Request Forgery (CSRF) - CWE-352: A remote attacker is able to delete a user account via the /enginemanager/server/user/delete.htm userName parameter. The application does not implement a CSRF token for the GET request. 2 - Uncontrolled Resource Consumption - CWE-400: A remote attacker is able to exhaust filesystem resources via the /enginemanager/server/vhost/historical.jsdata vhost parameter. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management." />
+1 - Cross-Site Request Forgery (CSRF) - CWE-352: A remote attacker is able to delete a user account via the /enginemanager/server/user/delete.htm userName parameter. The application does not implement a CSRF token for the GET request.
+2 - Uncontrolled Resource Consumption - CWE-400: A remote attacker is able to exhaust filesystem resources via the /enginemanager/server/vhost/historical.jsdata vhost parameter. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://n4nj0.github.io/advisories/wowza-streaming-engine-i/" />
 <meta property="article:published_time" content="2021-10-06T21:30:00&#43;01:00"/>
@@ -18,7 +19,8 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Wowza Streaming Engine - Multiple Vulnerabilities"/>
 <meta name="twitter:description" content="TL;DR I have found two security issues on Wowza Streaming Engine &lt;= 4.8.11&#43;5:
-1 - Cross-Site Request Forgery (CSRF) - CWE-352: A remote attacker is able to delete a user account via the /enginemanager/server/user/delete.htm userName parameter. The application does not implement a CSRF token for the GET request. 2 - Uncontrolled Resource Consumption - CWE-400: A remote attacker is able to exhaust filesystem resources via the /enginemanager/server/vhost/historical.jsdata vhost parameter. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management."/>
+1 - Cross-Site Request Forgery (CSRF) - CWE-352: A remote attacker is able to delete a user account via the /enginemanager/server/user/delete.htm userName parameter. The application does not implement a CSRF token for the GET request.
+2 - Uncontrolled Resource Consumption - CWE-400: A remote attacker is able to exhaust filesystem resources via the /enginemanager/server/vhost/historical.jsdata vhost parameter. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management."/>
 
 <meta name="generator" content="Hugo 0.54.0" />
     
@@ -131,9 +133,8 @@
 
 <p>I have found two security issues on Wowza Streaming Engine &lt;= 4.8.11+5:</p>
 
-<h3 id="1-cross-site-request-forgery-csrf-cwe-352-a-remote-attacker-is-able-to-delete-a-user-account-via-the-enginemanager-server-user-delete-htm-username-parameter-the-application-does-not-implement-a-csrf-token-for-the-get-request"><strong>1 - Cross-Site Request Forgery (CSRF) - CWE-352</strong>: A remote attacker is able to delete a user account via the /enginemanager/server/user/delete.htm <code>userName</code> parameter. The application does not implement a CSRF token for the GET request.</h3>
-
-<h3 id="2-uncontrolled-resource-consumption-cwe-400-a-remote-attacker-is-able-to-exhaust-filesystem-resources-via-the-enginemanager-server-vhost-historical-jsdata-vhost-parameter-a-successful-exploit-could-allow-the-attacker-to-cause-database-errors-and-cause-the-device-to-become-unresponsive-to-web-based-management"><strong>2 - Uncontrolled Resource Consumption - CWE-400</strong>: A remote attacker is able to exhaust filesystem resources via the /enginemanager/server/vhost/historical.jsdata <code>vhost</code> parameter. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management.</h3>
+<p><strong>1 - Cross-Site Request Forgery (CSRF) - CWE-352</strong>: A remote attacker is able to delete a user account via the /enginemanager/server/user/delete.htm <code>userName</code> parameter. The application does not implement a CSRF token for the GET request.<br />
+<strong>2 - Uncontrolled Resource Consumption - CWE-400</strong>: A remote attacker is able to exhaust filesystem resources via the /enginemanager/server/vhost/historical.jsdata <code>vhost</code> parameter. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management.</p>
 
 <h2 id="product-information">Product Information</h2>
 
