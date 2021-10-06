@@ -192,12 +192,12 @@
 
 <p>From an authenticated browser session to Wowza Streaming Engine with administrative privileges, open a new tab and go to the page <a href="http://127.0.0.1/csrf-delete-user.html">http://127.0.0.1/csrf-delete-user.html</a>.</p>
 
-<p><img src="/c9083d8eb67a0bbc1380f4d443015070.png" alt="CSRF - PoC HTML page" /></p>
+<p><img src="/images/c9083d8eb67a0bbc1380f4d443015070.png" alt="CSRF - PoC HTML page" /></p>
 
 <p>Select <strong>Submit request</strong>, to force the administrator to delete the selected user.<br />
 The request will be sent to the web application, and the user will be deleted:</p>
 
-<p><img src="/78625fe99a5c87bef165c60c492a5948.png" alt="CSRF - User deleted" /></p>
+<p><img src="/images/78625fe99a5c87bef165c60c492a5948.png" alt="CSRF - User deleted" /></p>
 
 <p>It was also found that the <code>wowzaSecurityToken</code> HTTP parameter is not present in this GET request. In this case, the application accepts the request and processes it every time.<br />
 This is not true in the case of user creation, where that parameter is present and correctly validated.</p>
@@ -230,21 +230,21 @@ This is not true in the case of user creation, where that parameter is present a
 <p>To exploit the vulnerability, intercept the browser session with a proxy like <a href="https://portswigger.net/burp"><strong>Burp Suite</strong></a>.<br />
 Then, go to the <strong>Virtual Host Monitoring</strong> section:</p>
 
-<p><img src="/77ac1d79a117b8d1f0922edaf04af168.png" alt="DoS - Virtual Host Monitoring - Web Interface" /></p>
+<p><img src="/images/77ac1d79a117b8d1f0922edaf04af168.png" alt="DoS - Virtual Host Monitoring - Web Interface" /></p>
 
 <p>An HTTP request will be automatically performed to view the historical data of the default virtual host.<br />
 The request on Burp Suite will be like the next screenshot.</p>
 
-<p><img src="/2090ff191739390815bd1a9ff9171c57.png" alt="DoS - Regular HTTP request" /></p>
+<p><img src="/images/2090ff191739390815bd1a9ff9171c57.png" alt="DoS - Regular HTTP request" /></p>
 
 <p>Every time virtual host monitoring data is requested, a new file is created or appended on the filesystem.<br />
 By default, this is the starting condition on the folder <code>/usr/local/WowzaStreamingEngine-4.8.11+5/stats/</code>:</p>
 
-<p><img src="/c185fd4210d6610f47b09d9335c97fe3.png" alt="DoS - Filesystem on normal condition" /></p>
+<p><img src="/images/c185fd4210d6610f47b09d9335c97fe3.png" alt="DoS - Filesystem on normal condition" /></p>
 
 <p>The attack can be performed using Burp Repeater, using the same request captured with the proxy, changing only the <code>vhost</code> parameter value. The response will be <strong>HTTP 200 OK</strong>:</p>
 
-<p><img src="/8ecb268be9d9f1a32bad417f729dfa7c.png" alt="DoS - New virtual host HTTP request" /></p>
+<p><img src="/images/8ecb268be9d9f1a32bad417f729dfa7c.png" alt="DoS - New virtual host HTTP request" /></p>
 
 <p>Alternatively, the same can be achieved with the following payload:</p>
 
@@ -263,13 +263,13 @@ Cookie: JSESSIONID=E1EC2C1050D74EB0E4DA9474789E8F5E; lastMangerHost=http%3A//127
 
 <p>On the filesystem side, a new file of 280 KB will be created, as depicted by the following screenshot:</p>
 
-<p><img src="/46b6a90a00b6794f46724d8d90a636df.png" alt="DoS - New virtual host file on the filesystem" /></p>
+<p><img src="/images/46b6a90a00b6794f46724d8d90a636df.png" alt="DoS - New virtual host file on the filesystem" /></p>
 
 <p>To massively exploit this condition, multiple requests with different <code>vhost</code> values have to be sent.<br />
 To send those requests reliably, the browser session has to be left active.<br />
 Session timeout can be prevented by installing a browser plugin like <a href="https://addons.mozilla.org/en-US/firefox/addon/tab-reloader/">Tab Reloader</a> and configure it to refresh the tab every 1 minute, like the following example:</p>
 
-<p><img src="/ae417f01c15f4d4c3d130bfa2aef85fa.png" alt="DoS - Session timeout prevention - Tab Reloader" /></p>
+<p><img src="/images/ae417f01c15f4d4c3d130bfa2aef85fa.png" alt="DoS - Session timeout prevention - Tab Reloader" /></p>
 
 <p>Then it is possible to create a custom script to randomize the vhost parameter to a new value to be sent every time.<br />
 I have released a Denial of Service tool on my <a href="https://github.com/N4nj0/CVE-2021-35492">GitHub repo</a>.</p>
@@ -280,7 +280,7 @@ I have released a Denial of Service tool on my <a href="https://github.com/N4nj0
 <p>When executing such tool, it is possible to exhaust the filesystem by creating <strong>5.5 GB</strong> of files every <strong>30 minutes</strong>.<br />
 The effect can be summarized on the following screenshot, which depicts multiple files created on the filesystem and the difference of the <strong>stats</strong> directory size after 30 minutes of the tool execution:</p>
 
-<p><img src="/12a45ff9bbc0902ed9db6238e8d1a270.png" alt="DoS - DoS exploit effect" /></p>
+<p><img src="/images/12a45ff9bbc0902ed9db6238e8d1a270.png" alt="DoS - DoS exploit effect" /></p>
 
 <p><strong>Security Impact</strong></p>
 
