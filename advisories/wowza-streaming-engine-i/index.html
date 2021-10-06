@@ -1,0 +1,331 @@
+<!doctype html>
+
+<html lang="en-us">
+
+<head>
+  <title>Wowza Streaming Engine - Multiple Vulnerabilities - The Tales of N4nj0</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="The HTML5 Herald" />
+<meta name="author" content="Veno Eivazian" /><meta property="og:title" content="Wowza Streaming Engine - Multiple Vulnerabilities" />
+<meta property="og:description" content="TL;DR I have found two security issues on Wowza Streaming Engine &lt;= 4.8.11&#43;5:
+1 - Cross-Site Request Forgery (CSRF) - CWE-352: A remote attacker is able to delete a user account via the /enginemanager/server/user/delete.htm userName parameter. The application does not implement a CSRF token for the GET request. 2 - Uncontrolled Resource Consumption - CWE-400: A remote attacker is able to exhaust filesystem resources via the /enginemanager/server/vhost/historical.jsdata vhost parameter. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://n4nj0.github.io/advisories/wowza-streaming-engine-i/" />
+<meta property="article:published_time" content="2021-10-06T21:30:00&#43;01:00"/>
+<meta property="article:modified_time" content="2021-10-06T21:30:00&#43;01:00"/>
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Wowza Streaming Engine - Multiple Vulnerabilities"/>
+<meta name="twitter:description" content="TL;DR I have found two security issues on Wowza Streaming Engine &lt;= 4.8.11&#43;5:
+1 - Cross-Site Request Forgery (CSRF) - CWE-352: A remote attacker is able to delete a user account via the /enginemanager/server/user/delete.htm userName parameter. The application does not implement a CSRF token for the GET request. 2 - Uncontrolled Resource Consumption - CWE-400: A remote attacker is able to exhaust filesystem resources via the /enginemanager/server/vhost/historical.jsdata vhost parameter. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management."/>
+
+<meta name="generator" content="Hugo 0.54.0" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://n4nj0.github.io/fontawesome/css/all.min.css" />
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  
+  
+  <link rel="stylesheet" type="text/css" href="/css/styles.css" /></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="/">The Tales of N4nj0</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://github.com/n4nj0" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://twitter.com/venoeivazian" title="Twitter">
+               <i class="fab fa-twitter fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/venoeivazian" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+        <li>
+            <a class="active" href="/advisories/">
+                <i class="fa-li fa  fa-lg"></i><span>Advisories</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/cves/">
+                <i class="fa-li fa  fa-lg"></i><span>CVEs</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/posts/">
+                <i class="fa-li fa  fa-lg"></i><span>Posts</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/whoami/">
+                <i class="fa-li fa  fa-lg"></i><span>whoami</span>
+            </a>
+        </li>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>Wowza Streaming Engine - Multiple Vulnerabilities</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2021-10-06T21:30:00&#43;01:00">Oct 6, 2021</time>
+        </li>
+        
+        
+
+        
+
+        <li>6 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+<div class="featured_image">
+    <a href="https://n4nj0.github.io/advisories/wowza-streaming-engine-i/" title="Wowza Streaming Engine - Multiple Vulnerabilities">
+        <img src="">
+    </a>
+</div>
+
+
+
+    
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<p>I have found two security issues on Wowza Streaming Engine &lt;= 4.8.11+5:</p>
+
+<h3 id="1-cross-site-request-forgery-csrf-cwe-352-a-remote-attacker-is-able-to-delete-a-user-account-via-the-enginemanager-server-user-delete-htm-username-parameter-the-application-does-not-implement-a-csrf-token-for-the-get-request"><strong>1 - Cross-Site Request Forgery (CSRF) - CWE-352</strong>: A remote attacker is able to delete a user account via the /enginemanager/server/user/delete.htm <code>userName</code> parameter. The application does not implement a CSRF token for the GET request.</h3>
+
+<h3 id="2-uncontrolled-resource-consumption-cwe-400-a-remote-attacker-is-able-to-exhaust-filesystem-resources-via-the-enginemanager-server-vhost-historical-jsdata-vhost-parameter-a-successful-exploit-could-allow-the-attacker-to-cause-database-errors-and-cause-the-device-to-become-unresponsive-to-web-based-management"><strong>2 - Uncontrolled Resource Consumption - CWE-400</strong>: A remote attacker is able to exhaust filesystem resources via the /enginemanager/server/vhost/historical.jsdata <code>vhost</code> parameter. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management.</h3>
+
+<h2 id="product-information">Product Information</h2>
+
+<ul>
+<li><strong>Product Line:</strong> Wowza Streaming Engine</li>
+<li><strong>Vulnerable Version:</strong> 4.8.11+5</li>
+<li><strong>Product Web Page:</strong> <a href="https://www.wowza.com/products/streaming-engine">https://www.wowza.com/products/streaming-engine</a></li>
+</ul>
+
+<p>Wowza Streaming Engine (known as Wowza Media Server) is a unified streaming media server software developed by Wowza Media Systems based in Colorado, in the United States of America and used by many US government entities such as NASA, US Air force, Boeing, New York Police Department and many other clients around the world.</p>
+
+<h2 id="vulnerability-details">Vulnerability Details</h2>
+
+<h3 id="1-cross-site-request-forgery-csrf-cwe-352"><strong>1 - Cross-Site Request Forgery (CSRF) - CWE-352</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> A remote attacker is able to delete a user without the victim&rsquo;s knowledge, by enticing an authenticated admin user to visit an attacker&rsquo;s web page. The application does not implement a CSRF token for the GET request. An attacker can craft an HTML page with a forged request on /enginemanager/server/user/delete.htm URL and send it to the victim.</li>
+<li><strong>Prerequisites:</strong> None.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-35491">CVE-2021-35491</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35491"><strong>N/A</strong> (N/A)</a></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>An authenticated user that visits a crafted HTML page with a forged request can delete a user on Wowza Streaming Engine on behalf of an administrator.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://wse.local:8088/enginemanager/server/user/delete.htm">http://wse.local:8088/enginemanager/server/user/delete.htm</a></li>
+<li><strong>HTTP Parameter:</strong> userName</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>First, create a new user from <strong>Server</strong> -&gt; <strong>Users</strong> -&gt; <strong>Add User</strong>.</p>
+
+<p><img src="/images/11107100fccd4ef3e37eaa455c75998d.png" alt="CSRF - User creation" /></p>
+
+<p>Then, <strong>Copy</strong> the following HTML to a file served on another machine, in this case a local Kali Linux, in the file: <code>/var/www/html/csrf-delete-user.html</code></p>
+
+<pre><code>&lt;html&gt;
+  &lt;body&gt;
+  &lt;script&gt;history.pushState('', '', '/')&lt;/script&gt;
+    &lt;form action=&quot;http://wse.local:8088/enginemanager/server/user/delete.htm&quot;&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;userName&quot; value=&quot;pippo&quot; /&gt;
+      &lt;input type=&quot;submit&quot; value=&quot;Submit request&quot; /&gt;
+    &lt;/form&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>Enable the local web server on the attacker machine:</p>
+
+<pre><code>sudo /etc/init.d/apache2 start
+</code></pre>
+
+<p>From an authenticated browser session to Wowza Streaming Engine with administrative privileges, open a new tab and go to the page <a href="http://127.0.0.1/csrf-delete-user.html">http://127.0.0.1/csrf-delete-user.html</a>.</p>
+
+<p><img src="/c9083d8eb67a0bbc1380f4d443015070/0102.png" alt="CSRF - PoC HTML page" /></p>
+
+<p>Select <strong>Submit request</strong>, to force the administrator to delete the selected user.<br />
+The request will be sent to the web application, and the user will be deleted:</p>
+
+<p><img src="/78625fe99a5c87bef165c60c492a5948/0103.png" alt="CSRF - User deleted" /></p>
+
+<p>It was also found that the <code>wowzaSecurityToken</code> HTTP parameter is not present in this GET request. In this case, the application accepts the request and processes it every time.<br />
+This is not true in the case of user creation, where that parameter is present and correctly validated.</p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue, a remote attacker is able to delete every user on Wowza Streaming Engine on behalf of a regular platform administrator.</p>
+
+<h3 id="2-uncontrolled-resource-consumption-cwe-400"><strong>2 - Uncontrolled Resource Consumption - CWE-400</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An authenticated user that views Virtual Host Monitoring historical data is able to forge an HTTP request to view a non-existing virtual host. Each time a new virtual host is requested, a 280 KB file is created on the filesystem. By randomly choosing different virtual host names, a malicious attacker is able to exhaust filesystem resources, resulting in a denial of service (DoS) condition on the affected application.</li>
+<li><strong>Prerequisites:</strong> Valid user session with the privileges to view Virtual Host Monitoring on Wowza Streaming Engine web interface.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-35492">CVE-2021-35492</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35492"><strong>N/A</strong> (N/A)</a></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>A remote user, authenticated to the Wowza Streaming Engine web interface, through <strong>Virtual Host Monitoring</strong> section, could exhaust filesystem resources, resulting in a denial of service (DoS) condition on an affected application. This vulnerability is due to the insufficient management of available filesystem resources. An attacker could exploit this vulnerability by requesting random virtual host historical data and exhausting available filesystem resources. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management. Manual intervention is required to free filesystem resources and return the application to an operational state.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://wse.local:8088/enginemanager/server/vhost/historical.jsdata">http://wse.local:8088/enginemanager/server/vhost/historical.jsdata</a></li>
+<li><strong>HTTP Parameters:</strong> vhost</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>To exploit the vulnerability, intercept the browser session with a proxy like <a href="https://portswigger.net/burp"><strong>Burp Suite</strong></a>.<br />
+Then, go to the <strong>Virtual Host Monitoring</strong> section:</p>
+
+<p><img src="/77ac1d79a117b8d1f0922edaf04af168/0201.png" alt="DoS - Virtual Host Monitoring - Web Interface" /></p>
+
+<p>An HTTP request will be automatically performed to view the historical data of the default virtual host.<br />
+The request on Burp Suite will be like the next screenshot.</p>
+
+<p><img src="/2090ff191739390815bd1a9ff9171c57/0202.png" alt="DoS - Regular HTTP request" /></p>
+
+<p>Every time virtual host monitoring data is requested, a new file is created or appended on the filesystem.<br />
+By default, this is the starting condition on the folder <code>/usr/local/WowzaStreamingEngine-4.8.11+5/stats/</code>:</p>
+
+<p><img src="/c185fd4210d6610f47b09d9335c97fe3/0203.png" alt="DoS - Filesystem on normal condition" /></p>
+
+<p>The attack can be performed using Burp Repeater, using the same request captured with the proxy, changing only the <code>vhost</code> parameter value. The response will be <strong>HTTP 200 OK</strong>:</p>
+
+<p><img src="/8ecb268be9d9f1a32bad417f729dfa7c/0204.png" alt="DoS - New virtual host HTTP request" /></p>
+
+<p>Alternatively, the same can be achieved with the following payload:</p>
+
+<pre><code>GET /enginemanager/server/vhost/historical.jsdata?vhost=_defaultVHost_pippo_&amp;periodStart=2021-06-03T13%3A47%3A44%2B02%3A00&amp;periodEnd=2021-06-03T14%3A47%3A44%2B02%3A00&amp;_=1622724285834 HTTP/1.1
+Host: wse.local:8088
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+X-Requested-With: XMLHttpRequest
+Connection: close
+Referer: http://wse.local:8088/enginemanager/Home.htm
+Cookie: JSESSIONID=E1EC2C1050D74EB0E4DA9474789E8F5E; lastMangerHost=http%3A//127.0.0.1%3A8087; showRightRail=true; DoNotShowFTU=false; lastTab=Basic
+
+</code></pre>
+
+<p>On the filesystem side, a new file of 280 KB will be created, as depicted by the following screenshot:</p>
+
+<p><img src="/46b6a90a00b6794f46724d8d90a636df/0205.png" alt="DoS - New virtual host file on the filesystem" /></p>
+
+<p>To massively exploit this condition, multiple requests with different <code>vhost</code> values have to be sent.<br />
+To send those requests reliably, the browser session has to be left active.<br />
+Session timeout can be prevented by installing a browser plugin like <a href="https://addons.mozilla.org/en-US/firefox/addon/tab-reloader/">Tab Reloader</a> and configure it to refresh the tab every 1 minute, like the following example:</p>
+
+<p><img src="/ae417f01c15f4d4c3d130bfa2aef85fa/0206.png" alt="DoS - Session timeout prevention - Tab Reloader" /></p>
+
+<p>Then it is possible to create a custom script to randomize the vhost parameter to a new value to be sent every time.<br />
+I have released a Denial of Service tool on my <a href="https://github.com/N4nj0/CVE-2021-35492">GitHub repo</a>.</p>
+
+<pre><code>./dos-exploit-wse.py
+</code></pre>
+
+<p>When executing such tool, it is possible to exhaust the filesystem by creating <strong>5.5 GB</strong> of files every <strong>30 minutes</strong>.<br />
+The effect can be summarized on the following screenshot, which depicts multiple files created on the filesystem and the difference of the <strong>stats</strong> directory size after 30 minutes of the tool execution:</p>
+
+<p><img src="/12a45ff9bbc0902ed9db6238e8d1a270/0207.png" alt="DoS - DoS exploit effect" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>An attacker could exploit this vulnerability to exhausting available filesystem resources. A successful exploit could allow the attacker to cause database errors and cause the device to become unresponsive to web-based management. Manual intervention is required to free filesystem resources and return the device to an operational state.</p>
+
+<h2 id="timeline">Timeline</h2>
+
+<ul>
+<li><strong>08/06/2020</strong>: First disclosure to Wowza via info@wowza.com.<br /></li>
+<li><strong>20/07/2020</strong>: Wowza Streaming Engine™ 4.8.14+9 build 20210719152831 is released. See the <a href="https://www.wowza.com/docs/wowza-streaming-engine-4-8-14-release-notes">Release Notes</a>.<br /></li>
+<li><strong>05/10/2021</strong>: MITRE published the 2 CVEs.<br /></li>
+</ul>
+
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        <li>
+            <a href="https://n4nj0.github.io/advisories/micro-focus-network-automation-i/"><i class="fa fa-chevron-circle-left"></i> Micro Focus Network Automation - Open Redirect via Origin Header</a>
+        </li>
+        
+        
+    </ul>
+</section>
+  
+    
+    
+  
+
+
+
+
+
+<footer>
+  <div>
+    <p>
+      <h6>
+      &copy; 2020 Veno Eivazian.
+      <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons Attribution">Some rights reserved</a>;
+      please attribute properly and link back.
+      </h6>
+    </p>
+  </div>
+</footer>
+
