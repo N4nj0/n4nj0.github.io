@@ -8,7 +8,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content="The HTML5 Herald" />
 <meta name="author" content="Veno Eivazian" /><meta property="og:title" content="NeDi 1.9C - Multiple Vulnerabilities" />
-<meta property="og:description" content="TL;DR 1 - SQL Injection: An authenticated user is able to perform a SQL Injection in the Monitoring History function on the endpoint /Monitoring-History.php via the det HTTP GET parameter.
+<meta property="og:description" content="TL;DR I have found three security issues on NeDi 1.9C:
+1 - SQL Injection: An authenticated user is able to perform a SQL Injection in the Monitoring History function on the endpoint /Monitoring-History.php via the det HTTP GET parameter.
 2 - Code Injection: An authenticated user is able to inject PHP code in the System Files function on the endpoint /System-Files.php via the txt HTTP POST parameter.
 3 - Command Injection: An authenticated user is able to execute operating system commands in the Nodes Traffic function on the endpoint /Nodes-Traffic." />
 <meta property="og:type" content="article" />
@@ -18,7 +19,8 @@
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="NeDi 1.9C - Multiple Vulnerabilities"/>
-<meta name="twitter:description" content="TL;DR 1 - SQL Injection: An authenticated user is able to perform a SQL Injection in the Monitoring History function on the endpoint /Monitoring-History.php via the det HTTP GET parameter.
+<meta name="twitter:description" content="TL;DR I have found three security issues on NeDi 1.9C:
+1 - SQL Injection: An authenticated user is able to perform a SQL Injection in the Monitoring History function on the endpoint /Monitoring-History.php via the det HTTP GET parameter.
 2 - Code Injection: An authenticated user is able to inject PHP code in the System Files function on the endpoint /System-Files.php via the txt HTTP POST parameter.
 3 - Command Injection: An authenticated user is able to execute operating system commands in the Nodes Traffic function on the endpoint /Nodes-Traffic."/>
 
@@ -131,6 +133,8 @@
 
 <h2 id="tl-dr">TL;DR</h2>
 
+<p>I have found three security issues on NeDi 1.9C:</p>
+
 <p><strong>1 - SQL Injection</strong>: An authenticated user is able to perform a SQL Injection in the Monitoring History function on the endpoint /Monitoring-History.php via the det HTTP GET parameter.<br />
 <strong>2 - Code Injection</strong>: An authenticated user is able to inject PHP code in the System Files function on the endpoint /System-Files.php via the txt HTTP POST parameter.<br />
 <strong>3 - Command Injection</strong>: An authenticated user is able to execute operating system commands in the Nodes Traffic function on the endpoint /Nodes-Traffic.php via the md or ag HTTP GET parameter.</p>
@@ -156,7 +160,7 @@
 During a security auditing of the product, I have found three issues.<br />
 The first is a SQL Injection, the second is a Code Injection, and the third is a Command Injection.</p>
 
-<p>The fixes were developed by the owner three day after my vulnerability notification. That&rsquo;s a very professional way to handle a high impact security vulnerabilities!</p>
+<p>The fixes were developed by the owner three day after my vulnerability notification. That&rsquo;s a very professional way to handle high impact security vulnerabilities!</p>
 
 <p>It is recommended to apply the latest patch 1.9Cp1: <a href="https://www.nedi.ch/pub/nedi-1.9C1.ptc">https://www.nedi.ch/pub/nedi-1.9C1.ptc</a></p>
 
