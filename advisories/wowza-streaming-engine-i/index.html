@@ -153,7 +153,7 @@
 <ul>
 <li><strong>Summary:</strong> A remote attacker is able to delete a user without the victim&rsquo;s knowledge, by enticing an authenticated admin user to visit an attacker&rsquo;s web page. The application does not implement a CSRF token for the GET request. An attacker can craft an HTML page with a forged request on /enginemanager/server/user/delete.htm URL and send it to the victim.</li>
 <li><strong>Prerequisites:</strong> None.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-35491">CVE-2021-35491</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35491"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-35491">CVE-2021-35491</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35491"><strong>8.1</strong> (High)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -212,7 +212,7 @@ This is not true in the case of user creation, where that parameter is present a
 <ul>
 <li><strong>Summary:</strong> An authenticated user that views Virtual Host Monitoring historical data is able to forge an HTTP request to view a non-existing virtual host. Each time a new virtual host is requested, a 280 KB file is created on the filesystem. By randomly choosing different virtual host names, a malicious attacker is able to exhaust filesystem resources, resulting in a denial of service (DoS) condition on the affected application.</li>
 <li><strong>Prerequisites:</strong> Valid user session with the privileges to view Virtual Host Monitoring on Wowza Streaming Engine web interface.</li>
-<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-35492">CVE-2021-35492</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35492"><strong>N/A</strong> (N/A)</a></li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-35492">CVE-2021-35492</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35492"><strong>6.5</strong> (Medium)</a></li>
 </ul>
 
 <p><strong>Step-by-step instructions and PoC</strong></p>
@@ -290,9 +290,10 @@ The effect can be summarized on the following screenshot, which depicts multiple
 <h2 id="timeline">Timeline</h2>
 
 <ul>
-<li><strong>08/06/2020</strong>: First disclosure to Wowza via <a href="mailto:info@wowza.com">info@wowza.com</a>.<br /></li>
-<li><strong>20/07/2020</strong>: Wowza Streaming Engine™ 4.8.14+9 build 20210719152831 is released. See the <a href="https://www.wowza.com/docs/wowza-streaming-engine-4-8-14-release-notes">Release Notes</a>.<br /></li>
-<li><strong>05/10/2021</strong>: MITRE published the 2 CVEs.<br /></li>
+<li><strong>08/06/2020</strong>: First disclosure to Wowza via <a href="mailto:info@wowza.com">info@wowza.com</a>.</li>
+<li><strong>20/07/2020</strong>: Wowza Streaming Engine™ 4.8.14+9 build 20210719152831 is released. See the <a href="https://www.wowza.com/docs/wowza-streaming-engine-4-8-14-release-notes">Release Notes</a>.</li>
+<li><strong>05/10/2021</strong>: Published CVEs on MITRE.</li>
+<li><strong>08/10/2021</strong>: NVD scored <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35491">CVE-2021-35491</a> as <strong>8.1</strong> (High), <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35492">CVE-2021-35492</a> as <strong>6.5</strong> (Medium).</li>
 </ul>
 
 
