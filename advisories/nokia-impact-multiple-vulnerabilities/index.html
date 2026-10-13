@@ -8,16 +8,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content="The HTML5 Herald" />
 <meta name="author" content="Veno Eivazian" /><meta property="og:title" content="Nokia IMPACT - Multiple Vulnerabilities" />
-<meta property="og:description" content="Nokia IMPACT - Multiple Vulnerabilities  Jul 22, 2026 5 minutes read  TL;DR During a security assessment of the Nokia IMPACT IoT platform, four distinct vulnerabilities were identified and reported. This work built directly on previous research carried out by Francesco Giordano, whose earlier findings on the product were the starting point that allowed us to investigate the platform together and discover the following new issues:
+<meta property="og:description" content="TL;DR During a security assessment of the Nokia IMPACT IoT platform, four distinct vulnerabilities were identified and reported. This work built directly on previous research carried out by Francesco Giordano, whose earlier findings on the product were the starting point that allowed us to investigate the platform together and discover the following new issues:
 1 - Stored Cross-Site Scripting (CVE-2021-35483): An authenticated user is able to store arbitrary JavaScript that is later executed in the browser of other authenticated users." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://n4nj0.github.io/advisories/nokia-impact-multiple-vulnerabilities/" />
-<meta property="article:published_time" content="2026-07-22T00:00:00&#43;00:00"/>
-<meta property="article:modified_time" content="2026-07-22T00:00:00&#43;00:00"/>
+<meta property="article:published_time" content="2026-07-22T15:43:00&#43;01:00"/>
+<meta property="article:modified_time" content="2026-07-22T15:43:00&#43;01:00"/>
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Nokia IMPACT - Multiple Vulnerabilities"/>
-<meta name="twitter:description" content="Nokia IMPACT - Multiple Vulnerabilities  Jul 22, 2026 5 minutes read  TL;DR During a security assessment of the Nokia IMPACT IoT platform, four distinct vulnerabilities were identified and reported. This work built directly on previous research carried out by Francesco Giordano, whose earlier findings on the product were the starting point that allowed us to investigate the platform together and discover the following new issues:
+<meta name="twitter:description" content="TL;DR During a security assessment of the Nokia IMPACT IoT platform, four distinct vulnerabilities were identified and reported. This work built directly on previous research carried out by Francesco Giordano, whose earlier findings on the product were the starting point that allowed us to investigate the platform together and discover the following new issues:
 1 - Stored Cross-Site Scripting (CVE-2021-35483): An authenticated user is able to store arbitrary JavaScript that is later executed in the browser of other authenticated users."/>
 
 <meta name="generator" content="Hugo 0.54.0" />
@@ -103,7 +103,7 @@
       <aside>
     <ul>
         <li>
-            <time class="post-date" datetime="2026-07-22T00:00:00Z">Jul 22, 2026</time>
+            <time class="post-date" datetime="2026-07-22T15:43:00&#43;01:00">Jul 22, 2026</time>
         </li>
         
         
@@ -117,24 +117,23 @@
     
 
     
+<div class="featured_image">
+    <a href="https://n4nj0.github.io/advisories/nokia-impact-multiple-vulnerabilities/" title="Nokia IMPACT - Multiple Vulnerabilities">
+        <img src="">
+    </a>
+</div>
+
 
 
     
-
-<h1 id="nokia-impact-multiple-vulnerabilities">Nokia IMPACT - Multiple Vulnerabilities</h1>
-
-<ul>
-<li>Jul 22, 2026</li>
-<li>5 minutes read</li>
-</ul>
 
 <h2 id="tl-dr">TL;DR</h2>
 
 <p>During a security assessment of the <strong>Nokia IMPACT</strong> IoT platform, four distinct vulnerabilities were identified and reported. This work built directly on previous research carried out by <strong>Francesco Giordano</strong>, whose earlier findings on the product were the starting point that allowed us to investigate the platform together and discover the following new issues:</p>
 
-<p><strong>1 - Stored Cross-Site Scripting (CVE-2021-35483)</strong>: An authenticated user is able to store arbitrary JavaScript that is later executed in the browser of other authenticated users.
-<strong>2 - Blind SQL Injection (CVE-2021-35484)</strong>: An authenticated user is able to perform a time-based boolean blind SQL Injection against the backend database.
-<strong>3 - Unrestricted File Upload / Remote Code Execution (CVE-2021-35485)</strong>: An authenticated user is able to upload arbitrary server-side executable files, potentially leading to remote code execution.
+<p><strong>1 - Stored Cross-Site Scripting (CVE-2021-35483)</strong>: An authenticated user is able to store arbitrary JavaScript that is later executed in the browser of other authenticated users.<br />
+<strong>2 - Blind SQL Injection (CVE-2021-35484)</strong>: An authenticated user is able to perform a time-based boolean blind SQL Injection against the backend database.<br />
+<strong>3 - Unrestricted File Upload / Remote Code Execution (CVE-2021-35485)</strong>: An authenticated user is able to upload arbitrary server-side executable files, potentially leading to remote code execution.<br />
 <strong>4 - Cross-Site Request Forgery (CVE-2021-35486)</strong>: Missing validation of the anti-CSRF token allows a remote attacker to import and overwrite the entire application configuration.</p>
 
 <blockquote>
@@ -190,7 +189,6 @@
 <ul>
 <li><strong>Summary:</strong> Nokia IMPACT is affected by a time-based boolean blind SQL Injection that an authenticated user can exploit to interact with the backend database, including retrieving the database user, database name, and database version information.</li>
 <li><strong>Prerequisites:</strong> The attacker must be an authenticated user with access to the affected functionality.</li>
-<li><strong>CVE:</strong> <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35484">CVE-2021-35484</a></li>
 <li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-35484">CVE-2021-35484</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35484"><strong>8.8</strong> (High)</a></li>
 </ul>
 
@@ -203,7 +201,6 @@
 <ul>
 <li><strong>Summary:</strong> A component of Nokia IMPACT allows an authenticated user to upload server-side executable files without adequate type restrictions. Under the right conditions this can lead to remote code execution on the affected server.</li>
 <li><strong>Prerequisites:</strong> The attacker must be an authenticated user with access to the affected functionality.</li>
-<li><strong>CVE:</strong> <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35485">CVE-2021-35485</a></li>
 <li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-35485">CVE-2021-35485</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35485"><strong>8.0</strong> (High)</a></li>
 </ul>
 
@@ -216,7 +213,6 @@
 <ul>
 <li><strong>Summary:</strong> Nokia IMPACT does not properly enforce anti-CSRF protection on a sensitive, state-changing configuration operation. As a result, a remote attacker can craft a request that, when triggered by an authenticated user, imports and overwrites the entire application configuration.</li>
 <li><strong>Prerequisites:</strong> The victim must be an authenticated user who is tricked into triggering the attacker-controlled request (e.g. by visiting a malicious page).</li>
-<li><strong>CVE:</strong> <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35486">CVE-2021-35486</a></li>
 <li><strong>CVE and CVSS Score:</strong> <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-35486">CVE-2021-35486</a> | <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-35486"><strong>8.1</strong> (High)</a></li>
 </ul>
 
